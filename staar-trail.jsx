@@ -200,6 +200,31 @@ const CSS = `
   background:var(--paper); font-weight:800; font-size:16px; cursor:pointer; }
 .chip.ok { border-color:var(--juniper); background:var(--juniper-lt); }
 
+/* celebration */
+.cheer { position:fixed; inset:0; z-index:80; background:rgba(15,31,61,.55);
+  display:grid; place-items:center; padding:20px; animation:fade .2s ease-out; }
+.cheerin { position:relative; background:var(--paper); border:4px solid var(--sunset);
+  border-radius:28px; padding:34px 28px 28px; text-align:center; max-width:420px; width:100%;
+  box-shadow:0 10px 0 rgba(199,158,12,.45); animation:rise .35s cubic-bezier(.2,1.4,.4,1); overflow:hidden; }
+.cface { font-size:82px; line-height:1; animation:bounce .6s cubic-bezier(.2,1.5,.4,1); }
+.chead { font-family:'Fredoka'; font-size:40px; margin:8px 0 6px; letter-spacing:.01em; color:var(--bluebonnet); }
+.csub { font-size:17px; font-weight:700; color:var(--soft); margin:0 0 20px; line-height:1.45; }
+.confetti { position:absolute; inset:0 0 auto 0; height:0; display:flex; justify-content:center; pointer-events:none; }
+.confetti i { position:absolute; top:0; width:9px; height:9px; border-radius:2px;
+  background:var(--sunset); transform:translateX(var(--x));
+  animation:drop 1.5s var(--d) ease-in forwards; }
+.confetti i:nth-child(3n) { background:var(--bluebonnet); }
+.confetti i:nth-child(3n+1) { background:var(--juniper); }
+.confetti i:nth-child(4n) { background:var(--clay); border-radius:50%; }
+@keyframes fade { from { opacity:0 } to { opacity:1 } }
+@keyframes rise { from { transform:translateY(24px) scale(.9); opacity:0 } to { transform:none; opacity:1 } }
+@keyframes bounce { 0% { transform:scale(.3) rotate(-18deg) } 100% { transform:none } }
+@keyframes drop { to { transform:translateX(var(--x)) translateY(330px) rotate(420deg); opacity:0 } }
+@media (prefers-reduced-motion:reduce){
+  .cheerin,.cface { animation:none }
+  .confetti { display:none }
+}
+
 /* progress display */
 .pill.ok { background:var(--juniper-lt); border-color:#A8D9C3; color:var(--juniper); }
 .pill.no { background:var(--clay-lt); border-color:#E8B3AB; color:var(--clay); }
@@ -1604,6 +1629,7 @@ function WordForge({ level, progress, push, go }) {
   const [wrongN, setWrongN] = useState(0);
   const [wordTally, setWordTally] = useState({});
   const [done, setDone] = useState(false);
+  const [showCheer, setShowCheer] = useState(true);
   const saved = useRef(false);
 
   const entry = round[i] || ["", ""];
@@ -1675,6 +1701,10 @@ function WordForge({ level, progress, push, go }) {
   if (done) {
     return (
       <div className="stack">
+        {won.length === round.length && showCheer && (
+          <Cheer emoji="🔤" sub={`All ${round.length} words spelled right the first time.`}
+            onClose={() => setShowCheer(false)} />
+        )}
         <div className="stamp card">
           <div className="big">{won.length === round.length ? "🔤" : "⚡"}</div>
           <h1 style={{ fontSize: 30, margin: "8px 0" }}>{won.length} of {round.length} spelled first try</h1>
@@ -1825,6 +1855,35 @@ function WordForge({ level, progress, push, go }) {
   );
 }
 
+/* ---------------- celebration popup ---------------- */
+const CHEERS = [
+  ["GREAT JOB!", "😀"], ["AWESOME!", "🤩"], ["NAILED IT!", "😎"],
+  ["YOU GOT IT!", "🥳"], ["BRILLIANT!", "🌟"], ["WAY TO GO!", "🚀"],
+];
+
+function Cheer({ title, sub, emoji, onClose }) {
+  const pick = React.useMemo(() => CHEERS[Math.floor(Math.random() * CHEERS.length)], []);
+  const headline = title || pick[0];
+  const face = emoji || pick[1];
+  useEffect(() => {
+    const t = setTimeout(onClose, 4000);   // gets out of the way on its own
+    return () => clearTimeout(t);
+  }, [onClose]);
+  return (
+    <div className="cheer" onClick={onClose}>
+      <div className="cheerin" onClick={(e) => e.stopPropagation()}>
+        <div className="confetti">
+          {Array.from({ length: 14 }).map((_, k) => <i key={k} style={{ "--d": `${k * 0.06}s`, "--x": `${(k % 7) * 15 - 45}%` }} />)}
+        </div>
+        <div className="cface">{face}</div>
+        <h1 className="chead">{headline}</h1>
+        {sub && <p className="csub">{sub}</p>}
+        <button className="btn gold" onClick={onClose}>Keep going</button>
+      </div>
+    </div>
+  );
+}
+
 /* ---------------- Speed Math: timed fact drill ---------------- */
 const SM_LEVELS = [
   { id: 1, name: "Single digit", note: "Numbers 1–9" },
@@ -1865,6 +1924,8 @@ function SpeedMath({ progress, push, go }) {
   const [misses, setMisses] = useState([]);
   const [streak, setStreak] = useState(0);
   const [bestStreak, setBestStreak] = useState(0);
+  const [beat, setBeat] = useState(false);
+  const [showCheer, setShowCheer] = useState(true);
   const saved = useRef(false);
   const bestKey = `sm${level}`;
 
@@ -1880,14 +1941,14 @@ function SpeedMath({ progress, push, go }) {
     saved.current = true;
     let p = record(progress, "Speed Math", score, misses.length);
     const prev = p.speedMath?.[bestKey] || 0;
-    if (score > prev) p.speedMath = { ...(p.speedMath || {}), [bestKey]: score };
+    if (score > prev && score > 0) { p.speedMath = { ...(p.speedMath || {}), [bestKey]: score }; setBeat(true); }
     push(p);
   }, [phase]); // eslint-disable-line
 
   const start = () => {
     if (!ops.length) return;
     saved.current = false;
-    setScore(0); setMisses([]); setStreak(0); setBestStreak(0);
+    setScore(0); setMisses([]); setStreak(0); setBestStreak(0); setBeat(false); setShowCheer(true);
     setInput(""); setFlash(null); setLeft(secs);
     setP(makeProblem(level, ops));
     setPhase("play");
@@ -1971,6 +2032,10 @@ function SpeedMath({ progress, push, go }) {
   if (phase === "over") {
     return (
       <div className="stack">
+        {beat && showCheer && (
+          <Cheer emoji="⚡" title="NEW RECORD!" sub={`${score} right — your best yet at this level.`}
+            onClose={() => setShowCheer(false)} />
+        )}
         <div className="stamp card">
           <div className="big">⚡</div>
           <h1 style={{ fontSize: 32, margin: "8px 0" }}>{score} right, {misses.length} wrong</h1>
@@ -2324,6 +2389,7 @@ function Practice({ concept, questions, onWord, onDone, goBack, reteach, timed }
   const [hint, setHint] = useState(false);
   const [score, setScore] = useState(0);
   const [finished, setFinished] = useState(false);
+  const [cheer, setCheer] = useState(false);
   const reported = useRef(false);
 
   const q = questions[i];
@@ -2342,13 +2408,24 @@ function Practice({ concept, questions, onWord, onDone, goBack, reteach, timed }
   };
 
   useEffect(() => {
-    if (finished && !reported.current) { reported.current = true; onDone(score); }
-  }, [finished, score, onDone]);
+    if (finished && !reported.current) {
+      reported.current = true;
+      onDone(score);
+      if (score >= questions.length - 1) setCheer(true);
+    }
+  }, [finished, score, onDone, questions.length]);
 
   if (finished) {
     const perfect = score === questions.length;
     return (
       <div className="stack">
+        {cheer && (
+          <Cheer
+            emoji={perfect ? "🧱" : null}
+            sub={`${concept ? concept.title : "Stop"} — ${score} out of ${questions.length}. Brick collected!`}
+            onClose={() => setCheer(false)}
+          />
+        )}
         <div className="stamp card">
           <div className="big">{perfect ? "🧱" : score > questions.length / 2 ? "⚡" : "🔧"}</div>
           <h1 style={{ fontSize: 30, margin: "8px 0" }}>
