@@ -183,6 +183,8 @@ const CSS = `
 @keyframes pop { from { transform:scale(.2) rotate(-25deg); opacity:0 } to { transform:none; opacity:1 } }
 @media (prefers-reduced-motion:reduce){ .stamp .big { animation:none } }
 
+.fixup { font-size:13px; font-weight:800; color:var(--clay); margin-right:8px; white-space:nowrap; }
+
 /* word forge */
 .bigword { font-family:'Fredoka'; font-size:56px; letter-spacing:.04em; margin:6px 0 18px; color:var(--bluebonnet); }
 .wordslots { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin:6px 0; }
@@ -197,6 +199,18 @@ const CSS = `
 .chip { padding:9px 14px; border-radius:999px; border:2px solid var(--line);
   background:var(--paper); font-weight:800; font-size:16px; cursor:pointer; }
 .chip.ok { border-color:var(--juniper); background:var(--juniper-lt); }
+
+/* speed math */
+.smbar { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; padding-top:14px; }
+.smcard { background:var(--paper); border:3px solid var(--line); border-radius:24px;
+  padding:26px 20px; text-align:center; box-shadow:0 5px 0 var(--line); transition:background .15s,border-color .15s; }
+.smcard.ok { border-color:var(--juniper); background:var(--juniper-lt); }
+.smcard.no { border-color:var(--clay); background:var(--clay-lt); }
+.smprob { font-family:'Fredoka'; font-size:46px; line-height:1.1; font-variant-numeric:tabular-nums; }
+.smanswer { font-family:'Fredoka'; font-size:40px; color:var(--bluebonnet); margin-top:10px;
+  font-variant-numeric:tabular-nums; }
+.smcard.no .smanswer { color:var(--clay); }
+.smnote { font-size:15px; font-weight:800; color:var(--clay); margin-top:6px; }
 
 /* collection */
 .pill.tap { cursor:pointer; font-family:'Nunito'; color:var(--ink); }
@@ -1141,7 +1155,7 @@ const byId = (id) => CONCEPTS.find((c) => c.id === id);
    STORAGE
    ============================================================ */
 const KEY = "texas-trail-progress-v1";
-const blank = { mastered: {}, seen: {}, best: {}, words: {}, correct: 0, attempts: 0, bestTimed: 0 };
+const blank = { mastered: {}, seen: {}, best: {}, words: {}, speedMath: {}, correct: 0, attempts: 0, bestTimed: 0 };
 
 async function loadProgress() {
   try {
@@ -1190,36 +1204,42 @@ function MC({ q, value, onChange, locked, onWord }) {
 function PlaceQ({ q, value, onChange, locked }) {
   const [armed, setArmed] = useState(null);
   const filled = value || {};
-  const usedTiles = Object.values(filled);
   const tapTile = (t) => { if (!locked) setArmed(armed === t ? null : t); };
   const tapSlot = (i) => {
     if (locked) return;
     const next = { ...filled };
-    if (next[i] !== undefined) { delete next[i]; onChange(next); return; }
-    if (armed === null) return;
-    Object.keys(next).forEach((k) => { if (next[k] === armed) delete next[k]; });
-    next[i] = armed;
+    if (armed === null) {                 // no card held: tapping clears the box
+      delete next[i];
+      onChange(next);
+      return;
+    }
+    next[i] = armed;                      // cards may be used more than once
     onChange(next);
     setArmed(null);
   };
+  const reusable = q.slots.length > new Set(q.slots.map((s) => s.a)).size;
   return (
     <div className="stack">
-      <div className="small">Tap a card, then tap where it goes. Tap a filled box to take it back.</div>
+      <div className="small">
+        Tap a card, then tap where it goes. Tap a filled box to empty it.
+        {reusable ? " The same card can be used more than once." : ""}
+      </div>
       <div className="tiles">
         {q.tiles.map((t) => (
-          <button key={t} className={`tile ${armed === t ? "armed" : ""} ${usedTiles.includes(t) ? "used" : ""}`} onClick={() => tapTile(t)}>{t}</button>
+          <button key={t} className={`tile ${armed === t ? "armed" : ""}`} onClick={() => tapTile(t)}>{t}</button>
         ))}
       </div>
       <div className="slots">
         {q.slots.map((s, i) => {
-          let cls = filled[i] !== undefined ? "filled" : "";
-          if (locked) cls = filled[i] === s.a ? "right" : "wrong";
+          const mine = filled[i];
+          const ok = mine === s.a;
+          let cls = mine !== undefined ? "filled" : "";
+          if (locked) cls = ok ? "right" : "wrong";
           return (
             <div className="slot" key={i}>
               <span className="lab">{s.lab}</span>
-              <button className={`drop ${cls}`} onClick={() => tapSlot(i)}>
-                {locked && filled[i] !== s.a ? s.a : (filled[i] ?? "—")}
-              </button>
+              {locked && !ok && <span className="fixup">should be <b>{s.a}</b></span>}
+              <button className={`drop ${cls}`} onClick={() => tapSlot(i)}>{mine ?? "—"}</button>
             </div>
           );
         })}
@@ -1363,6 +1383,7 @@ export default function BrickDash() {
         {!loaded && <p className="lede" style={{ padding: 40 }}>Loading your zones…</p>}
         {loaded && view.name === "map" && <TrailMap progress={progress} go={setView} />}
         {loaded && view.name === "collection" && <Collection progress={progress} push={push} go={setView} />}
+        {loaded && view.name === "mathdrill" && <SpeedMath progress={progress} push={push} go={setView} />}
         {loaded && view.name === "spell" && <WordForge key={String(view.level) + view.k} level={view.level} progress={progress} push={push} go={setView} />}
         {loaded && view.name === "region" && <RegionView rid={view.rid} progress={progress} go={setView} />}
         {loaded && view.name === "concept" && (
@@ -1422,6 +1443,19 @@ function TrailMap({ progress, go }) {
       </div>
 
       <div className="card stack" style={{ marginTop: 8 }}>
+        <h2 style={{ margin: 0, fontSize: 24 }}>⚡ Speed Math</h2>
+        <p className="lede" style={{ margin: 0 }}>
+          Timed drill on adding, subtracting, and multiplying. Pick single, double, or triple digits.
+        </p>
+        <div className="small">
+          Best runs — single {progress.speedMath?.sm1 || 0} · double {progress.speedMath?.sm2 || 0} · triple {progress.speedMath?.sm3 || 0}
+        </div>
+        <div className="btnrow">
+          <button className="btn" onClick={() => go({ name: "mathdrill" })}>Open Speed Math</button>
+        </div>
+      </div>
+
+      <div className="card stack" style={{ marginTop: 8 }}>
         <h2 style={{ margin: 0, fontSize: 24 }}>🔤 Word Forge</h2>
         <p className="lede" style={{ margin: 0 }}>
           Sight words, six at a time. Hear the word, build it from letters, then use it in a sentence.
@@ -1456,15 +1490,53 @@ function TrailMap({ progress, go }) {
 
 /* ---------------- Word Forge: hear it, spell it, use it ---------------- */
 const ALPHA = "abcdefghijklmnopqrstuvwxyz";
-const say = (w) => {
+
+/* Pick the best available English voice once, and keep it. */
+let VOICE = null;
+function pickVoice() {
+  try {
+    const vs = window.speechSynthesis.getVoices();
+    if (!vs || !vs.length) return null;
+    const en = vs.filter((v) => /^en(-|_)/i.test(v.lang));
+    const pool = en.length ? en : vs;
+    // Prefer named high-quality US voices, then any en-US, then anything English.
+    const wanted = ["Samantha", "Ava", "Allison", "Joanna", "Google US English", "Microsoft Aria", "Microsoft Jenny"];
+    for (const name of wanted) {
+      const hit = pool.find((v) => v.name && v.name.indexOf(name) === 0);
+      if (hit) return hit;
+    }
+    return pool.find((v) => /en(-|_)US/i.test(v.lang)) || pool[0];
+  } catch { return null; }
+}
+if (typeof window !== "undefined" && window.speechSynthesis) {
+  VOICE = pickVoice();
+  window.speechSynthesis.onvoiceschanged = () => { VOICE = pickVoice() || VOICE; };
+}
+
+function speak(text, rate = 0.95) {
   try {
     if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(w);
-    u.rate = 0.75; u.lang = "en-US";
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = rate; u.pitch = 1; u.volume = 1; u.lang = "en-US";
+    if (!VOICE) VOICE = pickVoice();
+    if (VOICE) u.voice = VOICE;
     window.speechSynthesis.speak(u);
   } catch { /* no voice available */ }
-};
+}
+
+/* A bare sight word often gets read wrong ("read", "live", "does").
+   Saying it, pausing, then saying it in the sentence fixes that. */
+function sayWord(word, sentence) {
+  const withContext = sentence ? sentence.replace("___", word) : "";
+  speak(withContext ? `${word}. ${withContext}` : word, 0.92);
+}
+
+/* Read the spelling out loud, one letter at a time. */
+function sayLetters(word) {
+  const spaced = word.split("").map((c) => (c === "'" ? "apostrophe" : c.toUpperCase())).join(", ");
+  speak(spaced, 0.6);
+}
 
 function WordForge({ level, progress, push, go }) {
   const list = SIGHT_WORDS[level] || [];
@@ -1499,7 +1571,7 @@ function WordForge({ level, progress, push, go }) {
     return [word, ...others].sort(() => Math.random() - 0.5);
   }, [word, list]);
 
-  useEffect(() => { if (step === "look" && word) say(word); }, [step, word]);
+  useEffect(() => { if (step === "look" && word) sayWord(word, sentence); }, [step, word, sentence]);
 
   useEffect(() => {
     if (!done || saved.current) return;
@@ -1544,7 +1616,7 @@ function WordForge({ level, progress, push, go }) {
         </div>
         <div className="wordlist">
           {round.map(([w]) => (
-            <span key={w} className={`chip ${won.includes(w) ? "ok" : ""}`} onClick={() => say(w)}>
+            <span key={w} className={`chip ${won.includes(w) ? "ok" : ""}`} onClick={() => speak(w, 0.92)}>
               {won.includes(w) ? "✓ " : ""}{w}
             </span>
           ))}
@@ -1567,7 +1639,10 @@ function WordForge({ level, progress, push, go }) {
         <>
           <div className="card" style={{ textAlign: "center" }}>
             <div className="bigword">{word}</div>
-            <button className="btn gold" onClick={() => say(word)}>🔊 Hear it again</button>
+            <div className="btnrow" style={{ justifyContent: "center" }}>
+              <button className="btn gold" onClick={() => sayWord(word, sentence)}>🔊 Hear it</button>
+              <button className="btn ghost" onClick={() => sayLetters(word)}>🔤 Spell it out</button>
+            </div>
           </div>
           <div className="idea">
             <h2>Used in a sentence</h2>
@@ -1575,7 +1650,7 @@ function WordForge({ level, progress, push, go }) {
               {sentence.split("___")[0]}<b style={{ color: "var(--bluebonnet)" }}>{word}</b>{sentence.split("___")[1]}
             </p>
           </div>
-          <p className="small">Look at every letter. In a second the word disappears and you build it.</p>
+          <p className="small">Look at every letter. Tap “Spell it out” to hear each one. Next screen the word disappears.</p>
           <div className="footer"><div className="in">
             <button className="btn ghost" onClick={() => go({ name: "map" })}>Quit</button>
             <button className="btn" onClick={() => setStep("build")}>I'm ready to spell it</button>
@@ -1587,7 +1662,10 @@ function WordForge({ level, progress, push, go }) {
       {step === "build" && (
         <>
           <p className="prompt">Spell the word. Tap 🔊 if you need to hear it again.</p>
-          <div className="btnrow"><button className="btn gold" onClick={() => say(word)}>🔊 Say it</button></div>
+          <div className="btnrow">
+            <button className="btn gold" onClick={() => sayWord(word, sentence)}>🔊 Say it</button>
+            <button className="btn ghost" onClick={() => sayLetters(word)}>🔤 Letter by letter</button>
+          </div>
 
           <div className="wordslots">
             {Array.from({ length: word.length }).map((_, k) => (
@@ -1632,7 +1710,7 @@ function WordForge({ level, progress, push, go }) {
                 <p>You built <b>{built.map((b) => b.t).join("")}</b>. The word is <b>{word}</b>. Say it slowly and listen for each sound, then try again.</p>
               </div>
               <div className="footer"><div className="in">
-                <button className="btn ghost" onClick={() => say(word)}>🔊 Say it</button>
+                <button className="btn ghost" onClick={() => sayLetters(word)}>🔤 Letter by letter</button>
                 <button className="btn" onClick={() => { setBuilt([]); setResult(null); }}>Try again</button>
               </div></div>
             </>
@@ -1671,6 +1749,207 @@ function WordForge({ level, progress, push, go }) {
           </div></div>
         </>
       )}
+    </div>
+  );
+}
+
+/* ---------------- Speed Math: timed fact drill ---------------- */
+const SM_LEVELS = [
+  { id: 1, name: "Single digit", note: "Numbers 1–9" },
+  { id: 2, name: "Double digit", note: "Numbers 10–99" },
+  { id: 3, name: "Triple digit", note: "Numbers 100–999" },
+];
+const rnd = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
+
+function makeProblem(level, ops) {
+  const op = ops[Math.floor(Math.random() * ops.length)];
+  let a, b;
+  if (op === "×") {
+    // Multiplication stays sane: the big number is only ever times a single digit.
+    if (level === 1) { a = rnd(2, 9); b = rnd(2, 9); }
+    else if (level === 2) { a = rnd(11, 99); b = rnd(2, 9); }
+    else { a = rnd(101, 999); b = rnd(2, 9); }
+    return { a, b, op, answer: a * b };
+  }
+  const [lo, hi] = level === 1 ? [1, 9] : level === 2 ? [10, 99] : [100, 999];
+  a = rnd(lo, hi); b = rnd(lo, hi);
+  if (op === "−") {
+    if (b > a) { const t = a; a = b; b = t; }   // keep it positive
+    return { a, b, op, answer: a - b };
+  }
+  return { a, b, op, answer: a + b };
+}
+
+function SpeedMath({ progress, push, go }) {
+  const [level, setLevel] = useState(1);
+  const [ops, setOps] = useState(["+", "−"]);
+  const [secs, setSecs] = useState(60);
+  const [phase, setPhase] = useState("setup");   // setup | play | over
+  const [left, setLeft] = useState(60);
+  const [p, setP] = useState(null);
+  const [input, setInput] = useState("");
+  const [flash, setFlash] = useState(null);      // null | 'ok' | 'no'
+  const [score, setScore] = useState(0);
+  const [misses, setMisses] = useState([]);
+  const [streak, setStreak] = useState(0);
+  const [bestStreak, setBestStreak] = useState(0);
+  const saved = useRef(false);
+  const bestKey = `sm${level}`;
+
+  useEffect(() => {
+    if (phase !== "play") return;
+    if (left <= 0) { setPhase("over"); return; }
+    const t = setTimeout(() => setLeft((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [phase, left]);
+
+  useEffect(() => {
+    if (phase !== "over" || saved.current) return;
+    saved.current = true;
+    const prev = progress.speedMath?.[bestKey] || 0;
+    if (score > prev) push({ ...progress, speedMath: { ...(progress.speedMath || {}), [bestKey]: score } });
+  }, [phase]); // eslint-disable-line
+
+  const start = () => {
+    if (!ops.length) return;
+    saved.current = false;
+    setScore(0); setMisses([]); setStreak(0); setBestStreak(0);
+    setInput(""); setFlash(null); setLeft(secs);
+    setP(makeProblem(level, ops));
+    setPhase("play");
+  };
+
+  const submit = () => {
+    if (input === "" || flash) return;
+    const right = Number(input) === p.answer;
+    if (right) {
+      setScore((s) => s + 1);
+      setStreak((s) => { const n = s + 1; setBestStreak((b) => Math.max(b, n)); return n; });
+      setFlash("ok");
+    } else {
+      setMisses((m) => [...m, `${p.a} ${p.op} ${p.b} = ${p.answer}`]);
+      setStreak(0);
+      setFlash("no");
+    }
+    setTimeout(() => {
+      setFlash(null); setInput("");
+      setP(makeProblem(level, ops));
+    }, right ? 350 : 1400);
+  };
+
+  const toggleOp = (o) =>
+    setOps((cur) => (cur.includes(o) ? (cur.length > 1 ? cur.filter((x) => x !== o) : cur) : [...cur, o]));
+
+  /* ---- setup ---- */
+  if (phase === "setup") {
+    return (
+      <div className="stack">
+        <div className="hero">
+          <h1>⚡ Speed Math</h1>
+          <p className="lede" style={{ color: "#4A5764", margin: 0 }}>
+            As many as you can before the clock runs out. Wrong answers show you the right one and keep going.
+          </p>
+        </div>
+
+        <h3 style={{ margin: "6px 0 0", fontSize: 19 }}>How big are the numbers?</h3>
+        <div className="stack">
+          {SM_LEVELS.map((l) => (
+            <button key={l.id} className={`stop ${level === l.id ? "done" : ""}`} onClick={() => setLevel(l.id)}>
+              <span className="badge">{level === l.id ? "✅" : l.id}</span>
+              <span className="t"><b>{l.name}</b><span className="small">{l.note}</span></span>
+            </button>
+          ))}
+        </div>
+
+        <h3 style={{ margin: "6px 0 0", fontSize: 19 }}>Which operations?</h3>
+        <div className="btnrow">
+          {["+", "−", "×"].map((o) => (
+            <button key={o} className={`btn ${ops.includes(o) ? "" : "ghost"}`} onClick={() => toggleOp(o)}
+              style={{ minWidth: 78, fontSize: 26 }}>{o}</button>
+          ))}
+        </div>
+        {ops.includes("×") && level === 3 && (
+          <p className="small">Heads up: triple-digit multiplying is past third grade. It'll be 3 digits times 1 digit.</p>
+        )}
+
+        <h3 style={{ margin: "6px 0 0", fontSize: 19 }}>How long?</h3>
+        <div className="btnrow">
+          {[60, 120, 180].map((t) => (
+            <button key={t} className={`btn ${secs === t ? "" : "ghost"}`} onClick={() => setSecs(t)}>
+              {t / 60} min
+            </button>
+          ))}
+        </div>
+
+        <div className="small" style={{ marginTop: 8 }}>
+          Best at {SM_LEVELS.find((l) => l.id === level).name.toLowerCase()}: {progress.speedMath?.[bestKey] || 0} correct
+        </div>
+
+        <div className="footer"><div className="in">
+          <button className="btn ghost" onClick={() => go({ name: "map" })}>Back</button>
+          <button className="btn" onClick={start}>Start the clock</button>
+        </div></div>
+      </div>
+    );
+  }
+
+  /* ---- results ---- */
+  if (phase === "over") {
+    return (
+      <div className="stack">
+        <div className="stamp card">
+          <div className="big">⚡</div>
+          <h1 style={{ fontSize: 32, margin: "8px 0" }}>{score} correct</h1>
+          <p className="lede" style={{ color: "#4A5764", margin: 0 }}>
+            Best streak in a row: {bestStreak}. {score > (progress.speedMath?.[bestKey] || 0) ? "That's a new record." : ""}
+          </p>
+        </div>
+        {misses.length > 0 && (
+          <div className="card stack">
+            <h3 style={{ margin: 0, fontSize: 19 }}>Worth another look</h3>
+            <div className="wordlist">
+              {misses.slice(0, 12).map((m, k) => <span key={k} className="chip">{m}</span>)}
+            </div>
+          </div>
+        )}
+        <div className="btnrow">
+          <button className="btn" onClick={start}>Run it again</button>
+          <button className="btn ghost" onClick={() => setPhase("setup")}>Change settings</button>
+          <button className="btn ghost" onClick={() => go({ name: "map" })}>Back to zones</button>
+        </div>
+      </div>
+    );
+  }
+
+  /* ---- playing ---- */
+  return (
+    <div className="stack">
+      <div className="smbar">
+        <span className={`pill timer ${left < 15 ? "low" : ""}`}>⏱ {Math.floor(left / 60)}:{String(left % 60).padStart(2, "0")}</span>
+        <span className="pill">✅ {score}</span>
+        <span className="pill gold">🔥 {streak}</span>
+      </div>
+
+      <div className={`smcard ${flash === "ok" ? "ok" : flash === "no" ? "no" : ""}`}>
+        <div className="smprob">{p.a} {p.op} {p.b}</div>
+        <div className="smanswer">{flash === "no" ? p.answer : (input === "" ? "?" : input)}</div>
+        {flash === "no" && <div className="smnote">The answer was {p.answer}</div>}
+      </div>
+
+      <div className="pad" style={{ justifyContent: "center", margin: "0 auto" }}>
+        {["1","2","3","4","5","6","7","8","9","C","0","⌫"].map((k) => (
+          <button key={k} disabled={!!flash} onClick={() => {
+            if (k === "C") setInput("");
+            else if (k === "⌫") setInput(input.slice(0, -1));
+            else if (input.length < 6) setInput(input + k);
+          }}>{k}</button>
+        ))}
+      </div>
+
+      <div className="footer"><div className="in">
+        <button className="btn ghost" onClick={() => setPhase("over")}>Stop</button>
+        <button className="btn" disabled={input === "" || !!flash} onClick={submit}>Enter</button>
+      </div></div>
     </div>
   );
 }
