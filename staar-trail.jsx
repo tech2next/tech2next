@@ -200,6 +200,27 @@ const CSS = `
   background:var(--paper); font-weight:800; font-size:16px; cursor:pointer; }
 .chip.ok { border-color:var(--juniper); background:var(--juniper-lt); }
 
+/* progress display */
+.pill.ok { background:var(--juniper-lt); border-color:#A8D9C3; color:var(--juniper); }
+.pill.no { background:var(--clay-lt); border-color:#E8B3AB; color:var(--clay); }
+.g { color:var(--juniper); font-weight:800; }
+.r { color:var(--clay); font-weight:800; }
+.progsum { display:block; width:100%; text-align:center; cursor:pointer;
+  box-shadow:0 4px 0 var(--line); margin-bottom:4px; font-family:'Nunito'; color:var(--ink); }
+.progsum:active { transform:translateY(3px); box-shadow:0 1px 0 var(--line); }
+.ps { display:flex; justify-content:space-around; gap:10px; }
+.ps > span { display:flex; flex-direction:column; }
+.ps b { font-family:'Fredoka'; font-size:34px; line-height:1.1; color:var(--bluebonnet); }
+.ps b.g { color:var(--juniper); }
+.ps b.r { color:var(--clay); }
+.ps > span > span { font-size:13px; font-weight:800; color:var(--soft); }
+.table { background:var(--paper); border:2px solid var(--line); border-radius:18px; overflow:hidden; }
+.tr { display:grid; grid-template-columns:1.6fr .7fr .7fr .8fr; gap:6px;
+  padding:13px 14px; font-size:15px; font-weight:700; border-bottom:1px solid var(--line); }
+.tr > span + span { text-align:right; font-variant-numeric:tabular-nums; }
+.tr.th { background:var(--caliche); font-size:13px; font-weight:800; color:var(--soft); text-transform:uppercase; letter-spacing:.03em; }
+.tr.tf { border-bottom:none; background:var(--bluebonnet-lt); font-weight:800; }
+
 /* speed math */
 .smbar { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; padding-top:14px; }
 .smcard { background:var(--paper); border:3px solid var(--line); border-radius:24px;
@@ -1155,7 +1176,23 @@ const byId = (id) => CONCEPTS.find((c) => c.id === id);
    STORAGE
    ============================================================ */
 const KEY = "texas-trail-progress-v1";
-const blank = { mastered: {}, seen: {}, best: {}, words: {}, speedMath: {}, correct: 0, attempts: 0, bestTimed: 0 };
+const blank = {
+  mastered: {}, seen: {}, best: {}, words: {}, speedMath: {},
+  areas: {},        // per activity: { right, wrong }
+  stop: {},         // per concept stop: { right, wrong, runs }
+  wordStats: {},    // per sight word: { right, wrong }
+  correct: 0, attempts: 0, bestTimed: 0,
+};
+
+/* Every activity funnels its right/wrong through here so the totals stay honest. */
+function record(p, area, right, wrong) {
+  const n = { ...p };
+  const prev = (n.areas && n.areas[area]) || { right: 0, wrong: 0 };
+  n.areas = { ...(n.areas || {}), [area]: { right: prev.right + right, wrong: prev.wrong + wrong } };
+  n.correct = (n.correct || 0) + right;
+  n.attempts = (n.attempts || 0) + right + wrong;
+  return n;
+}
 
 async function loadProgress() {
   try {
@@ -1373,6 +1410,12 @@ export default function BrickDash() {
           <span className="home">Brick Dash</span>
         )}
         <span className="spacer" />
+        <button className="pill tap ok" onClick={() => setView({ name: "collection" })}>
+          ✅ {progress.correct || 0}
+        </button>
+        <button className="pill tap no" onClick={() => setView({ name: "collection" })}>
+          ✗ {Math.max(0, (progress.attempts || 0) - (progress.correct || 0))}
+        </button>
         <button className="pill gold tap" onClick={() => setView({ name: "collection" })}>
           🧱 {mastered}/{totalConcepts}
         </button>
@@ -1426,6 +1469,15 @@ function TrailMap({ progress, go }) {
           how to do it, then five questions. Four right and the brick is yours.
         </p>
       </div>
+
+      <button className="card progsum" onClick={() => go({ name: "collection" })}>
+        <div className="ps">
+          <span><b className="g">{progress.correct || 0}</b><span>right</span></span>
+          <span><b className="r">{Math.max(0, (progress.attempts || 0) - (progress.correct || 0))}</b><span>wrong</span></span>
+          <span><b>{progress.attempts ? Math.round(((progress.correct || 0) / progress.attempts) * 100) : 0}%</b><span>correct</span></span>
+        </div>
+        <div className="small" style={{ marginTop: 10, fontWeight: 800 }}>See everything you've done →</div>
+      </button>
 
       <div className="trail">
         {REGIONS.map((r) => {
@@ -1548,6 +1600,9 @@ function WordForge({ level, progress, push, go }) {
   const [firstTry, setFirstTry] = useState(true);
   const [useChoice, setUseChoice] = useState(null);
   const [won, setWon] = useState([]);
+  const [rightN, setRightN] = useState(0);
+  const [wrongN, setWrongN] = useState(0);
+  const [wordTally, setWordTally] = useState({});
   const [done, setDone] = useState(false);
   const saved = useRef(false);
 
@@ -1576,11 +1631,24 @@ function WordForge({ level, progress, push, go }) {
   useEffect(() => {
     if (!done || saved.current) return;
     saved.current = true;
-    const p = { ...progress };
+    let p = record(progress, "Word Forge", rightN, wrongN);
     p.words = { ...(p.words || {}) };
     won.forEach((w) => { p.words[w] = (p.words[w] || 0) + 1; });
+    p.wordStats = { ...(p.wordStats || {}) };
+    Object.entries(wordTally).forEach(([w, t]) => {
+      const prev = p.wordStats[w] || { right: 0, wrong: 0 };
+      p.wordStats[w] = { right: prev.right + t.right, wrong: prev.wrong + t.wrong };
+    });
     push(p);
   }, [done]); // eslint-disable-line
+
+  const tally = (w, ok) => {
+    setWordTally((t) => {
+      const prev = t[w] || { right: 0, wrong: 0 };
+      return { ...t, [w]: { right: prev.right + (ok ? 1 : 0), wrong: prev.wrong + (ok ? 0 : 1) } };
+    });
+    if (ok) setRightN((n) => n + 1); else setWrongN((n) => n + 1);
+  };
 
   const usedCount = {};
   built.forEach((b) => { usedCount[b.t] = (usedCount[b.t] || 0) + 1; });
@@ -1589,9 +1657,11 @@ function WordForge({ level, progress, push, go }) {
     const attempt = built.map((b) => b.t).join("");
     if (attempt === word) {
       setResult("right");
+      tally(word, true);
       if (firstTry) setWon((w) => [...w, word]);
     } else {
       setResult("wrong");
+      tally(word, false);
       setFirstTry(false);
     }
   };
@@ -1608,6 +1678,7 @@ function WordForge({ level, progress, push, go }) {
         <div className="stamp card">
           <div className="big">{won.length === round.length ? "🔤" : "⚡"}</div>
           <h1 style={{ fontSize: 30, margin: "8px 0" }}>{won.length} of {round.length} spelled first try</h1>
+          <p className="small" style={{ margin: "0 0 6px" }}>{rightN} right · {wrongN} wrong this round</p>
           <p className="lede" style={{ color: "#4A5764", margin: 0 }}>
             {won.length === round.length
               ? "Every word, first try. That's the whole round clean."
@@ -1728,7 +1799,8 @@ function WordForge({ level, progress, push, go }) {
               let cls = "";
               if (useChoice !== null) cls = o === word ? "right" : useChoice === o ? "wrong" : "";
               return (
-                <button key={k} className={`opt ${cls}`} disabled={useChoice !== null} onClick={() => setUseChoice(o)}>
+                <button key={k} className={`opt ${cls}`} disabled={useChoice !== null}
+                  onClick={() => { setUseChoice(o); tally(word, o === word); }}>
                   <span className="k">{"ABC"[k]}</span><span>{o}</span>
                 </button>
               );
@@ -1806,8 +1878,10 @@ function SpeedMath({ progress, push, go }) {
   useEffect(() => {
     if (phase !== "over" || saved.current) return;
     saved.current = true;
-    const prev = progress.speedMath?.[bestKey] || 0;
-    if (score > prev) push({ ...progress, speedMath: { ...(progress.speedMath || {}), [bestKey]: score } });
+    let p = record(progress, "Speed Math", score, misses.length);
+    const prev = p.speedMath?.[bestKey] || 0;
+    if (score > prev) p.speedMath = { ...(p.speedMath || {}), [bestKey]: score };
+    push(p);
   }, [phase]); // eslint-disable-line
 
   const start = () => {
@@ -1899,7 +1973,7 @@ function SpeedMath({ progress, push, go }) {
       <div className="stack">
         <div className="stamp card">
           <div className="big">⚡</div>
-          <h1 style={{ fontSize: 32, margin: "8px 0" }}>{score} correct</h1>
+          <h1 style={{ fontSize: 32, margin: "8px 0" }}>{score} right, {misses.length} wrong</h1>
           <p className="lede" style={{ color: "#4A5764", margin: 0 }}>
             Best streak in a row: {bestStreak}. {score > (progress.speedMath?.[bestKey] || 0) ? "That's a new record." : ""}
           </p>
@@ -2012,6 +2086,30 @@ function Collection({ progress, push, go }) {
         <div className="stat"><b>{Object.keys(progress.words || {}).length}</b><span>sight words spelled</span></div>
       </div>
 
+      <h3 style={{ margin: "16px 0 0", fontSize: 21 }}>Right and wrong by activity</h3>
+      <div className="table">
+        <div className="tr th"><span>Activity</span><span>Right</span><span>Wrong</span><span>Correct</span></div>
+        {["Concept stops", "Speed Run", "Speed Math", "Word Forge"].map((a) => {
+          const d = (progress.areas || {})[a] || { right: 0, wrong: 0 };
+          const tot = d.right + d.wrong;
+          return (
+            <div className="tr" key={a}>
+              <span>{a}</span>
+              <span className="g">{d.right}</span>
+              <span className="r">{d.wrong}</span>
+              <span>{tot ? Math.round((d.right / tot) * 100) + "%" : "—"}</span>
+            </div>
+          );
+        })}
+        <div className="tr tf">
+          <span>Everything</span>
+          <span className="g">{progress.correct || 0}</span>
+          <span className="r">{Math.max(0, (progress.attempts || 0) - (progress.correct || 0))}</span>
+          <span>{progress.attempts ? Math.round(((progress.correct || 0) / progress.attempts) * 100) + "%" : "—"}</span>
+        </div>
+      </div>
+
+      <h3 style={{ margin: "16px 0 0", fontSize: 21 }}>Every stop</h3>
       {REGIONS.map((r) => {
         const cs = conceptsIn(r.id);
         return (
@@ -2021,6 +2119,7 @@ function Collection({ progress, push, go }) {
               {cs.map((c) => {
                 const got = !!progress.mastered?.[c.id];
                 const best = progress.best?.[c.id];
+                const st = (progress.stop || {})[c.id] || { right: 0, wrong: 0, runs: 0 };
                 return (
                   <button key={c.id} className={`brick ${got ? "got" : ""}`} style={{ "--rc": r.rc }}
                     onClick={() => go({ name: "concept", cid: c.id })}>
@@ -2029,6 +2128,9 @@ function Collection({ progress, push, go }) {
                     <span className="bs">
                       {got ? "Collected" : best !== undefined ? `Best ${best}/5 — try again` : "Not started"}
                     </span>
+                    {st.runs > 0 && (
+                      <span className="bs"><span className="g">{st.right} right</span> · <span className="r">{st.wrong} wrong</span> · {st.runs} {st.runs === 1 ? "run" : "runs"}</span>
+                    )}
                   </button>
                 );
               })}
@@ -2036,6 +2138,25 @@ function Collection({ progress, push, go }) {
           </div>
         );
       })}
+
+      {(() => {
+        const tricky = Object.entries(progress.wordStats || {})
+          .filter(([, d]) => d.wrong > 0)
+          .sort((a, b) => b[1].wrong - a[1].wrong)
+          .slice(0, 16);
+        if (!tricky.length) return null;
+        return (
+          <div className="card stack" style={{ marginTop: 14 }}>
+            <h3 style={{ margin: 0, fontSize: 19 }}>Words worth practising again</h3>
+            <p className="small" style={{ margin: 0 }}>Missed most often. Tap one to hear it.</p>
+            <div className="wordlist">
+              {tricky.map(([w, d]) => (
+                <span key={w} className="chip" onClick={() => speak(w, 0.92)}>{w} <b className="r">×{d.wrong}</b></span>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       <div className="card stack" style={{ marginTop: 14 }}>
         <h3 style={{ margin: 0, fontSize: 19 }}>Backup</h3>
@@ -2180,11 +2301,12 @@ function ConceptView({ cid, progress, push, go, onWord }) {
       questions={c.qs}
       onWord={onWord}
       onDone={(score) => {
-        const p = { ...progress };
-        p.attempts = (p.attempts || 0) + c.qs.length;
-        p.correct = (p.correct || 0) + score;
+        const wrong = c.qs.length - score;
+        let p = record(progress, "Concept stops", score, wrong);
         p.seen = { ...p.seen, [c.id]: true };
         p.best = { ...p.best, [c.id]: Math.max(p.best?.[c.id] || 0, score) };
+        const st = (p.stop && p.stop[c.id]) || { right: 0, wrong: 0, runs: 0 };
+        p.stop = { ...(p.stop || {}), [c.id]: { right: st.right + score, wrong: st.wrong + wrong, runs: st.runs + 1 } };
         if (score >= c.qs.length - 1) p.mastered = { ...p.mastered, [c.id]: true };
         push(p);
       }}
@@ -2309,6 +2431,7 @@ function TimedTrek({ startSecs = 240, progress, push, go, onWord }) {
   const [val, setVal] = useState(undefined);
   const [locked, setLocked] = useState(false);
   const [score, setScore] = useState(0);
+  const [wrongN, setWrongN] = useState(0);
 
   useEffect(() => {
     TIMER_LEFT = secs;
@@ -2319,8 +2442,13 @@ function TimedTrek({ startSecs = 240, progress, push, go, onWord }) {
 
   const over = secs <= 0 || i >= pool.length;
 
+  const reported = useRef(false);
   useEffect(() => {
-    if (over && score > (progress.bestTimed || 0)) push({ ...progress, bestTimed: score });
+    if (!over || reported.current) return;
+    reported.current = true;
+    let p = record(progress, "Speed Run", score, wrongN);
+    if (score > (p.bestTimed || 0)) p.bestTimed = score;
+    push(p);
   }, [over]); // eslint-disable-line
 
   if (over) {
@@ -2328,7 +2456,7 @@ function TimedTrek({ startSecs = 240, progress, push, go, onWord }) {
       <div className="stack">
         <div className="stamp card">
           <div className="big">⚡</div>
-          <h1 style={{ fontSize: 30, margin: "8px 0" }}>Time! {score} correct</h1>
+          <h1 style={{ fontSize: 30, margin: "8px 0" }}>Time! {score} right, {wrongN} wrong</h1>
           <p className="lede" style={{ color: "#4A5764", margin: 0 }}>
             On the real test you get hours, not minutes. The point of this is to notice when you're
             rushing — and to keep going when a question feels hard instead of freezing on it.
@@ -2372,7 +2500,7 @@ function TimedTrek({ startSecs = 240, progress, push, go, onWord }) {
 
       <div className="footer"><div className="in">
         {!locked && <button className="btn ghost" onClick={() => { setI(i + 1); setVal(undefined); }}>Skip</button>}
-        {!locked && <button className="btn" disabled={!answered} onClick={() => { setLocked(true); if (isCorrect(q, val)) setScore((s) => s + 1); }}>Check</button>}
+        {!locked && <button className="btn" disabled={!answered} onClick={() => { setLocked(true); if (isCorrect(q, val)) setScore((s) => s + 1); else setWrongN((n) => n + 1); }}>Check</button>}
         {locked && <button className="btn" onClick={() => { setI(i + 1); setVal(undefined); setLocked(false); }}>Next</button>}
       </div></div>
     </div>
