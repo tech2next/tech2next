@@ -6,7 +6,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
    ============================================================ */
 
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:ital,wght@0,400;0,600;0,800;1,600&display=swap');
+/* Fonts are embedded in the page as data URIs. No external requests. */
 
 .tt * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 .tt {
@@ -16,12 +16,15 @@ const CSS = `
   --sunset:#F5C518; --sunset-lt:#FEF3CE;
   --clay:#D8362A; --clay-lt:#FBE0DE;
   --line:#CFDAEC;
-  font-family:'Nunito',-apple-system,'Avenir Next',system-ui,sans-serif;
+  --display:'Cherry Cream Soda',ui-rounded,'Avenir Next Rounded',system-ui,cursive;
+  --ui:'Playpen Sans',ui-rounded,'SF Pro Rounded',system-ui,sans-serif;
+  --read:'Nunito',-apple-system,'Avenir Next',system-ui,sans-serif;
+  font-family:var(--ui);
   color:var(--ink); background:var(--caliche);
   min-height:100vh; touch-action:manipulation;
   -webkit-text-size-adjust:100%;
 }
-.tt h1,.tt h2,.tt h3,.tt .display { font-family:'Fredoka','Avenir Next',system-ui,sans-serif; font-weight:600; letter-spacing:-0.01em; }
+.tt h1,.tt h2,.tt h3,.tt .display { font-family:var(--display); font-weight:400; letter-spacing:0; }
 
 .shell { max-width:900px; margin:0 auto; padding:0 18px 96px; }
 
@@ -29,7 +32,7 @@ const CSS = `
 .topbar { position:sticky; top:0; z-index:30; background:var(--caliche);
   border-bottom:2px solid var(--line); padding:12px 18px;
   display:flex; align-items:center; gap:12px; }
-.topbar .home { font-family:'Fredoka'; font-size:19px; background:none; border:none;
+.topbar .home { font-family:var(--ui); font-size:19px; background:none; border:none;
   color:var(--ink); cursor:pointer; padding:6px 4px; }
 .spacer { flex:1; }
 .pill { display:inline-flex; align-items:center; gap:6px; font-weight:800; font-size:15px;
@@ -43,7 +46,7 @@ const CSS = `
 .stack > * + * { margin-top:14px; }
 .lede { font-size:18px; line-height:1.55; }
 .small { font-size:14px; color:var(--soft); }
-.btn { font-family:'Fredoka'; font-size:19px; font-weight:600; border:none; cursor:pointer;
+.btn { font-family:var(--ui); font-size:18px; font-weight:700; border:none; cursor:pointer;
   padding:16px 26px; border-radius:16px; background:var(--bluebonnet); color:#fff;
   min-height:56px; box-shadow:0 4px 0 #0E45AC; }
 .btn:active { transform:translateY(3px); box-shadow:0 1px 0 #0E45AC; }
@@ -55,7 +58,7 @@ const CSS = `
 
 /* ---- trail map ---- */
 .hero { padding:26px 4px 10px; }
-.hero h1 { font-size:38px; line-height:1.05; margin:0 0 8px; }
+.hero h1 { font-size:34px; line-height:1.05; margin:0 0 8px; }
 .trail { display:grid; gap:14px; }
 @media (min-width:640px){ .trail { grid-template-columns:1fr 1fr; } }
 .region { text-align:left; background:var(--paper); border:2px solid var(--line);
@@ -82,7 +85,7 @@ const CSS = `
   display:grid; place-items:center; font-size:22px; background:var(--caliche); border:2px solid var(--line); }
 .stop.done .badge { background:var(--sunset-lt); border-color:#EBCB92; }
 .stop .t { flex:1; }
-.stop .t b { font-family:'Fredoka'; font-weight:600; font-size:18px; display:block; }
+.stop .t b { font-family:var(--ui); font-weight:600; font-size:18px; display:block; }
 
 /* ---- teaching card ---- */
 .idea { background:var(--juniper-lt); border:2px solid #BFDACF; border-radius:20px; padding:20px; }
@@ -95,15 +98,16 @@ const CSS = `
 .qnum { font-weight:800; font-size:14px; color:var(--soft); }
 .prompt { font-size:20px; line-height:1.55; font-weight:600; }
 .passage { background:var(--paper); border:2px solid var(--line); border-radius:16px;
-  padding:16px 18px; max-height:34vh; overflow:auto; font-size:17px; line-height:1.65; }
-.passage h4 { font-family:'Fredoka'; margin:0 0 8px; font-size:19px; }
+  padding:16px 18px; max-height:34vh; overflow:auto; font-size:17.5px; line-height:1.7;
+  font-family:var(--read); }
+.passage h4 { font-family:var(--ui); margin:0 0 8px; font-size:19px; }
 .passage p { margin:0 0 10px; }
 
 .opts { display:grid; gap:10px; }
 .opt { display:flex; gap:12px; align-items:center; text-align:left; width:100%;
   background:var(--paper); border:2px solid var(--line); border-radius:16px;
   padding:15px 16px; font-size:18px; font-weight:600; cursor:pointer; min-height:58px;
-  font-family:'Nunito'; color:var(--ink); }
+  font-family:var(--ui); color:var(--ink); }
 .opt .k { width:32px; height:32px; flex:none; border-radius:9px; background:var(--caliche);
   border:2px solid var(--line); display:grid; place-items:center; font-weight:800; font-size:15px; }
 .opt.sel { border-color:var(--bluebonnet); background:var(--bluebonnet-lt); }
@@ -116,7 +120,7 @@ const CSS = `
 /* place / drag-drop */
 .tiles { display:flex; flex-wrap:wrap; gap:10px; }
 .tile { padding:13px 18px; border-radius:14px; border:2px solid var(--line);
-  background:var(--paper); font-size:17px; font-weight:700; cursor:pointer; min-height:52px; font-family:'Nunito'; color:var(--ink); }
+  background:var(--paper); font-size:17px; font-weight:700; cursor:pointer; min-height:52px; font-family:var(--ui); color:var(--ink); }
 .tile.armed { border-color:var(--sunset); background:var(--sunset-lt); }
 .tile.used { opacity:.3; }
 .slots { display:grid; gap:10px; }
@@ -125,7 +129,7 @@ const CSS = `
 .slot .lab { flex:1; font-size:17px; font-weight:600; }
 .drop { min-width:110px; min-height:46px; border-radius:12px; border:2px dashed #C9C5B2;
   display:grid; place-items:center; font-weight:800; font-size:17px; background:var(--caliche);
-  cursor:pointer; padding:0 12px; font-family:'Nunito'; color:var(--ink); }
+  cursor:pointer; padding:0 12px; font-family:var(--ui); color:var(--ink); }
 .drop.filled { border-style:solid; border-color:var(--bluebonnet); background:var(--bluebonnet-lt); }
 .drop.right { border-style:solid; border-color:var(--juniper); background:var(--juniper-lt); }
 .drop.wrong { border-style:solid; border-color:var(--clay); background:var(--clay-lt); }
@@ -133,17 +137,17 @@ const CSS = `
 /* inline choice */
 .sentence { font-size:20px; line-height:2.1; font-weight:600; }
 .inlinepick { display:inline-block; }
-.inlinepick select { font-family:'Nunito'; font-size:18px; font-weight:700; padding:8px 10px;
+.inlinepick select { font-family:var(--ui); font-size:18px; font-weight:700; padding:8px 10px;
   border-radius:12px; border:2px solid var(--bluebonnet); background:var(--bluebonnet-lt);
   color:var(--ink); min-height:46px; }
 
 /* entry */
 .entry { display:flex; flex-direction:column; align-items:center; gap:14px; }
-.readout { font-size:38px; font-family:'Fredoka'; min-width:200px; text-align:center;
+.readout { font-size:38px; font-family:var(--ui); min-width:200px; text-align:center;
   background:var(--paper); border:2px solid var(--line); border-radius:16px; padding:12px 20px;
   font-variant-numeric:tabular-nums; }
 .pad { display:grid; grid-template-columns:repeat(3,86px); gap:10px; }
-.pad button { height:66px; font-size:26px; font-family:'Fredoka'; border-radius:14px;
+.pad button { height:66px; font-size:26px; font-family:var(--ui); border-radius:14px;
   border:2px solid var(--line); background:var(--paper); color:var(--ink); cursor:pointer; }
 .pad button:active { background:var(--caliche); }
 
@@ -186,19 +190,30 @@ const CSS = `
 .fixup { font-size:13px; font-weight:800; color:var(--clay); margin-right:8px; white-space:nowrap; }
 
 /* word forge */
-.bigword { font-family:'Fredoka'; font-size:56px; letter-spacing:.04em; margin:6px 0 18px; color:var(--bluebonnet); }
+.bigword { font-family:var(--ui); font-size:56px; letter-spacing:.04em; margin:6px 0 18px; color:var(--bluebonnet); }
 .wordslots { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin:6px 0; }
 .ws { width:48px; height:62px; border-radius:12px; border:3px solid var(--line);
   background:var(--paper); display:grid; place-items:center;
-  font-family:'Fredoka'; font-size:30px; text-transform:lowercase; }
+  font-family:var(--ui); font-size:30px; text-transform:lowercase; }
 .ws.ok { border-color:var(--juniper); background:var(--juniper-lt); }
 .ws.no { border-color:var(--clay); background:var(--clay-lt); }
-.tile.letter { min-width:58px; height:58px; font-family:'Fredoka'; font-size:26px;
+.tile.letter { min-width:58px; height:58px; font-family:var(--ui); font-size:26px;
   padding:0 14px; text-align:center; }
 .wordlist { display:flex; flex-wrap:wrap; gap:8px; }
 .chip { padding:9px 14px; border-radius:999px; border:2px solid var(--line);
   background:var(--paper); font-weight:800; font-size:16px; cursor:pointer; }
 .chip.ok { border-color:var(--juniper); background:var(--juniper-lt); }
+
+/* sentence building */
+.sentbuild { min-height:96px; background:var(--paper); border:3px dashed #C2CDE0; border-radius:18px;
+  padding:14px; display:flex; flex-wrap:wrap; gap:8px; align-items:flex-start; align-content:flex-start; }
+.sentbuild.ok { border-style:solid; border-color:var(--juniper); background:var(--juniper-lt); }
+.sentbuild.no { border-style:solid; border-color:var(--clay); background:var(--clay-lt); }
+.ghosttext { font-size:16px; font-weight:700; color:#93A1B5; }
+.sw { font-size:19px; font-weight:700; padding:6px 2px; }
+.sw.target { color:var(--bluebonnet); font-weight:800; text-decoration:underline;
+  text-decoration-color:var(--sunset); text-decoration-thickness:3px; text-underline-offset:3px; }
+.tile.word { font-size:18px; font-weight:700; min-height:52px; padding:12px 16px; }
 
 /* celebration */
 .cheer { position:fixed; inset:0; z-index:80; background:rgba(15,31,61,.55);
@@ -207,7 +222,7 @@ const CSS = `
   border-radius:28px; padding:34px 28px 28px; text-align:center; max-width:420px; width:100%;
   box-shadow:0 10px 0 rgba(199,158,12,.45); animation:rise .35s cubic-bezier(.2,1.4,.4,1); overflow:hidden; }
 .cface { font-size:82px; line-height:1; animation:bounce .6s cubic-bezier(.2,1.5,.4,1); }
-.chead { font-family:'Fredoka'; font-size:40px; margin:8px 0 6px; letter-spacing:.01em; color:var(--bluebonnet); }
+.chead { font-family:var(--display); font-size:36px; font-weight:400; margin:8px 0 6px; letter-spacing:.01em; color:var(--bluebonnet); }
 .csub { font-size:17px; font-weight:700; color:var(--soft); margin:0 0 20px; line-height:1.45; }
 .confetti { position:absolute; inset:0 0 auto 0; height:0; display:flex; justify-content:center; pointer-events:none; }
 .confetti i { position:absolute; top:0; width:9px; height:9px; border-radius:2px;
@@ -231,11 +246,11 @@ const CSS = `
 .g { color:var(--juniper); font-weight:800; }
 .r { color:var(--clay); font-weight:800; }
 .progsum { display:block; width:100%; text-align:center; cursor:pointer;
-  box-shadow:0 4px 0 var(--line); margin-bottom:4px; font-family:'Nunito'; color:var(--ink); }
+  box-shadow:0 4px 0 var(--line); margin-bottom:4px; font-family:var(--ui); color:var(--ink); }
 .progsum:active { transform:translateY(3px); box-shadow:0 1px 0 var(--line); }
 .ps { display:flex; justify-content:space-around; gap:10px; }
 .ps > span { display:flex; flex-direction:column; }
-.ps b { font-family:'Fredoka'; font-size:34px; line-height:1.1; color:var(--bluebonnet); }
+.ps b { font-family:var(--ui); font-size:34px; line-height:1.1; color:var(--bluebonnet); }
 .ps b.g { color:var(--juniper); }
 .ps b.r { color:var(--clay); }
 .ps > span > span { font-size:13px; font-weight:800; color:var(--soft); }
@@ -252,26 +267,26 @@ const CSS = `
   padding:26px 20px; text-align:center; box-shadow:0 5px 0 var(--line); transition:background .15s,border-color .15s; }
 .smcard.ok { border-color:var(--juniper); background:var(--juniper-lt); }
 .smcard.no { border-color:var(--clay); background:var(--clay-lt); }
-.smprob { font-family:'Fredoka'; font-size:46px; line-height:1.1; font-variant-numeric:tabular-nums; }
-.smanswer { font-family:'Fredoka'; font-size:40px; color:var(--bluebonnet); margin-top:10px;
+.smprob { font-family:var(--ui); font-size:46px; line-height:1.1; font-variant-numeric:tabular-nums; }
+.smanswer { font-family:var(--ui); font-size:40px; color:var(--bluebonnet); margin-top:10px;
   font-variant-numeric:tabular-nums; }
 .smcard.no .smanswer { color:var(--clay); }
 .smnote { font-size:15px; font-weight:800; color:var(--clay); margin-top:6px; }
 
 /* collection */
-.pill.tap { cursor:pointer; font-family:'Nunito'; color:var(--ink); }
+.pill.tap { cursor:pointer; font-family:var(--ui); color:var(--ink); }
 .pill.tap:active { transform:translateY(2px); }
 .stats { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 @media (min-width:560px){ .stats { grid-template-columns:repeat(3,1fr); } }
 .stat { background:var(--paper); border:2px solid var(--line); border-radius:18px;
   padding:16px; text-align:center; box-shadow:0 4px 0 var(--line); }
-.stat b { display:block; font-family:'Fredoka'; font-size:34px; line-height:1.1; color:var(--bluebonnet); }
+.stat b { display:block; font-family:var(--ui); font-size:34px; line-height:1.1; color:var(--bluebonnet); }
 .stat span { font-size:14px; font-weight:700; color:var(--soft); }
 .shelf { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 @media (min-width:560px){ .shelf { grid-template-columns:repeat(3,1fr); } }
 .brick { text-align:left; background:var(--paper); border:2px solid var(--line);
   border-radius:16px; padding:14px; cursor:pointer; box-shadow:0 4px 0 var(--line);
-  font-family:'Nunito'; color:var(--ink); display:block; }
+  font-family:var(--ui); color:var(--ink); display:block; }
 .brick:active { transform:translateY(3px); box-shadow:0 1px 0 var(--line); }
 .brick.got { border-color:var(--rc); background:linear-gradient(0deg, rgba(245,197,24,.14), rgba(245,197,24,.14)), var(--paper); }
 .brick .bi { font-size:28px; display:block; filter:grayscale(1); opacity:.45; }
@@ -288,21 +303,72 @@ const CSS = `
 .dots span.past { background:#A9B0C7; }
 .dots span.on { background:var(--bluebonnet); }
 
+/* garage + car */
+.stage { background:linear-gradient(180deg,#F7FAFF,#DDE7F7); border:2px solid var(--line);
+  border-radius:24px; padding:10px 4px 0; overflow:hidden; }
+.stage.home { margin-top:14px; }
+.car { width:100%; height:auto; display:block; max-height:230px; }
+.car.small { max-height:170px; }
+.car.driving { animation:drive 2.6s ease-in-out; }
+@keyframes drive {
+  0% { transform:translateX(0) }
+  35% { transform:translateX(38%) rotate(1deg) }
+  65% { transform:translateX(-34%) rotate(-1deg) }
+  100% { transform:translateX(0) }
+}
+.flame { animation:flick .28s steps(2) infinite; transform-origin:52px 96px; }
+@keyframes flick { from { opacity:.55; transform:scaleX(.85) } to { opacity:1; transform:scaleX(1.12) } }
+@media (prefers-reduced-motion:reduce){ .car.driving,.flame { animation:none } }
+
+.nextup { border-left:10px solid var(--sunset); }
+.namerow { display:flex; gap:10px; }
+.nameinput { flex:1; font-family:var(--ui); font-size:20px; font-weight:800; letter-spacing:.06em;
+  text-transform:uppercase; padding:12px 14px; border-radius:14px; border:2px solid var(--line);
+  background:var(--paper); color:var(--ink); min-height:56px; }
+.swatches { display:flex; gap:10px; flex-wrap:wrap; }
+.swatch { width:52px; height:52px; border-radius:15px; border:4px solid var(--line); cursor:pointer; }
+.swatch.on { border-color:var(--ink); transform:scale(1.06); }
+.partrow { background:var(--paper); border:2px solid var(--line); border-radius:18px; padding:15px; opacity:.62; }
+.partrow.got { opacity:1; border-color:var(--juniper); }
+.phead { display:flex; align-items:center; gap:14px; }
+.pemoji { font-size:26px; width:46px; height:46px; flex:none; border-radius:14px; background:var(--caliche);
+  display:grid; place-items:center; }
+.partrow.got .pemoji { background:var(--juniper-lt); }
+.phead .t { flex:1; }
+.phead .t b { display:block; font-size:18px; font-weight:800; }
+
+/* Bolt */
+.bolt { display:flex; align-items:center; gap:10px; background:var(--bluebonnet-lt);
+  border:2px solid #BFC9EE; border-radius:18px; padding:11px 12px; margin-top:14px; }
+.bface { font-size:26px; flex:none; }
+.bline { flex:1; font-size:15.5px; font-weight:700; line-height:1.4; }
+.bbtn { flex:none; background:var(--paper); border:2px solid #BFC9EE; border-radius:11px;
+  width:38px; height:38px; font-size:15px; cursor:pointer; color:var(--ink); }
+.boltoff { display:block; margin:14px 0 0; background:none; border:none; color:var(--soft);
+  font-family:var(--ui); font-size:13px; font-weight:800; cursor:pointer; padding:4px 0; }
+
+/* breadcrumb */
+.crumb { font-size:14px; font-weight:800; color:var(--soft); margin-bottom:4px; }
+
 /* stage 1 objectives */
-.goals { display:grid; gap:12px; }
-.goal { display:flex; align-items:center; gap:16px; background:var(--paper);
-  border:2px solid var(--line); border-radius:18px; padding:18px;
-  font-size:19px; font-weight:700; line-height:1.4; }
-.goal .gi { font-size:34px; flex:none; width:52px; height:52px; border-radius:15px;
+.goals { display:grid; gap:12px; list-style:none; margin:0; padding:0; }
+.goal { display:flex; align-items:center; gap:14px; background:var(--paper);
+  border:2px solid var(--line); border-left:8px solid var(--sunset); border-radius:18px; padding:16px;
+  font-size:19px; font-weight:700; line-height:1.4; cursor:pointer; }
+.goal:active { background:var(--sunset-lt); }
+.goal .gi { font-size:30px; flex:none; width:46px; height:46px; border-radius:14px;
   background:var(--sunset-lt); display:grid; place-items:center; }
+.gt { flex:1; }
+.gspk { flex:none; font-size:19px; opacity:.45; }
 
 /* stage 2 steps */
 .steps { list-style:none; margin:0; padding:0; display:grid; gap:10px; counter-reset:s; }
 .steps li { display:flex; gap:14px; align-items:flex-start; background:var(--paper);
   border:2px solid var(--line); border-radius:18px; padding:16px;
-  font-size:18px; line-height:1.55; }
+  font-size:18px; line-height:1.55; cursor:pointer; }
+.steps li:active { background:var(--bluebonnet-lt); }
 .steps .sn { flex:none; width:34px; height:34px; border-radius:11px; background:var(--bluebonnet);
-  color:#fff; display:grid; place-items:center; font-family:'Fredoka'; font-size:18px; }
+  color:#fff; display:grid; place-items:center; font-family:var(--ui); font-size:18px; }
 `;
 
 /* ============================================================
@@ -1448,9 +1514,14 @@ export default function BrickDash() {
       </div>
 
       <div className="shell">
+        {loaded && (
+          <Bolt line={boltLine(view, progress)} hidden={progress.boltOff}
+            onToggle={() => push({ ...progress, boltOff: !progress.boltOff })} />
+        )}
         {!loaded && <p className="lede" style={{ padding: 40 }}>Loading your zones…</p>}
         {loaded && view.name === "map" && <TrailMap progress={progress} go={setView} />}
         {loaded && view.name === "collection" && <Collection progress={progress} push={push} go={setView} />}
+        {loaded && view.name === "garage" && <Garage progress={progress} push={push} go={setView} />}
         {loaded && view.name === "mathdrill" && <SpeedMath progress={progress} push={push} go={setView} />}
         {loaded && view.name === "spell" && <WordForge key={String(view.level) + view.k} level={view.level} progress={progress} push={push} go={setView} />}
         {loaded && view.name === "region" && <RegionView rid={view.rid} progress={progress} go={setView} />}
@@ -1487,11 +1558,39 @@ function TimerPill() {
 function TrailMap({ progress, go }) {
   return (
     <div className="stack">
-      <div className="hero">
-        <h1>Pick your zone.</h1>
+      <div className="stage home">
+        <Car car={progress.car} progress={progress} small />
+      </div>
+
+      {(() => {
+        const np = nextPart(progress);
+        const named = progress.car && progress.car.name;
+        return (
+          <div className="card stack nextup">
+            <h2 style={{ margin: 0, fontSize: 25 }}>
+              {!named ? "Name your ride first!" : np ? `Next up: ${np.emoji} ${np.name.toLowerCase()}!` : "🏁 The build is finished!"}
+            </h2>
+            <p className="lede" style={{ margin: 0, color: "#4A5764" }}>
+              {!named ? "Give it a name and pick a colour in the garage." : np ? np.how : "Every part is on. Take it for a drive in the garage."}
+            </p>
+            <div className="btnrow">
+              {!named || !np
+                ? <button className="btn gold" onClick={() => go({ name: "garage" })}>Open My Garage</button>
+                : <>
+                    <button className="btn" onClick={() => go(np.goTo ? { ...np.goTo, k: Math.random() } : { name: "region", rid: (REGIONS.find((r) => r.name === np.zone) || { id: "num" }).id })}>
+                      Continue adventure
+                    </button>
+                    <button className="btn ghost" onClick={() => go({ name: "garage" })}>My Garage</button>
+                  </>}
+            </div>
+          </div>
+        );
+      })()}
+
+      <div className="hero" style={{ paddingTop: 18 }}>
+        <h1>Choose a mission</h1>
         <p className="lede" style={{ maxWidth: 520, color: "#4A5764" }}>
-          Six zones to clear. Each stop runs in three stages: what you're learning,
-          how to do it, then five questions. Four right and the brick is yours.
+          Every mission you finish adds a part to your car. Four right out of five also earns a brick.
         </p>
       </div>
 
@@ -1535,7 +1634,7 @@ function TrailMap({ progress, go }) {
       <div className="card stack" style={{ marginTop: 8 }}>
         <h2 style={{ margin: 0, fontSize: 24 }}>🔤 Word Forge</h2>
         <p className="lede" style={{ margin: 0 }}>
-          Sight words, six at a time. Hear the word, build it from letters, then use it in a sentence.
+          Sight words, six at a time. Hear it, build it from letters, then put a whole sentence in order.
         </p>
         <div className="small">Words spelled right so far: {Object.keys(progress.words || {}).length}</div>
         <div className="btnrow">
@@ -1609,6 +1708,9 @@ function sayWord(word, sentence) {
   speak(withContext ? `${word}. ${withContext}` : word, 0.92);
 }
 
+/* [[word]] markers are for the tappable glossary; the voice shouldn't say the brackets. */
+const plain = (t) => String(t).replace(/\[\[([^\]]+)\]\]/g, "$1");
+
 /* Read the spelling out loud, one letter at a time. */
 function sayLetters(word) {
   const spaced = word.split("").map((c) => (c === "'" ? "apostrophe" : c.toUpperCase())).join(", ");
@@ -1623,7 +1725,8 @@ function WordForge({ level, progress, push, go }) {
   const [built, setBuilt] = useState([]);
   const [result, setResult] = useState(null);   // null | 'right' | 'wrong'
   const [firstTry, setFirstTry] = useState(true);
-  const [useChoice, setUseChoice] = useState(null);
+  const [placed, setPlaced] = useState([]);      // tile indices, in the order tapped
+  const [sentResult, setSentResult] = useState(null);
   const [won, setWon] = useState([]);
   const [rightN, setRightN] = useState(0);
   const [wrongN, setWrongN] = useState(0);
@@ -1646,11 +1749,13 @@ function WordForge({ level, progress, push, go }) {
     return [...letters, ...decoys].sort(() => Math.random() - 0.5);
   }, [word]);
 
-  /* three wrong options for the sentence step */
-  const useOptions = React.useMemo(() => {
-    const others = list.map((x) => x[0]).filter((w) => w !== word).sort(() => Math.random() - 0.5).slice(0, 2);
-    return [word, ...others].sort(() => Math.random() - 0.5);
-  }, [word, list]);
+  /* the finished sentence, and its words shuffled into tiles */
+  const fullSentence = sentence ? sentence.replace("___", word) : "";
+  const sentWords = React.useMemo(() => (fullSentence ? fullSentence.split(" ") : []), [fullSentence]);
+  const sentTiles = React.useMemo(
+    () => sentWords.map((w, i) => ({ i, w })).sort(() => Math.random() - 0.5),
+    [sentWords]
+  );
 
   useEffect(() => { if (step === "look" && word) sayWord(word, sentence); }, [step, word, sentence]);
 
@@ -1695,7 +1800,7 @@ function WordForge({ level, progress, push, go }) {
   const nextWord = () => {
     if (i + 1 >= round.length) { setDone(true); return; }
     setI(i + 1); setStep("look"); setBuilt([]); setResult(null);
-    setFirstTry(true); setUseChoice(null);
+    setFirstTry(true); setPlaced([]); setSentResult(null);
   };
 
   if (done) {
@@ -1797,7 +1902,7 @@ function WordForge({ level, progress, push, go }) {
 
           {result === "right" && (
             <>
-              <div className="fb ok"><h3>Spelled it.</h3><p>Now let's use it.</p></div>
+              <div className="fb ok"><h3>Spelled it.</h3><p>Now put the sentence in order.</p></div>
               <div className="footer"><div className="in">
                 <button className="btn" onClick={() => setStep("use")}>Next step</button>
               </div></div>
@@ -1819,38 +1924,342 @@ function WordForge({ level, progress, push, go }) {
         </>
       )}
 
-      {/* STEP 3 — use it in a sentence */}
+      {/* STEP 3 — build the whole sentence */}
       {step === "use" && (
         <>
-          <p className="prompt">Which word finishes the sentence?</p>
-          <div className="idea"><p style={{ fontSize: 21, margin: 0 }}>{sentence.replace("___", "________")}</p></div>
-          <div className="opts">
-            {useOptions.map((o, k) => {
-              let cls = "";
-              if (useChoice !== null) cls = o === word ? "right" : useChoice === o ? "wrong" : "";
-              return (
-                <button key={k} className={`opt ${cls}`} disabled={useChoice !== null}
-                  onClick={() => { setUseChoice(o); tally(word, o === word); }}>
-                  <span className="k">{"ABC"[k]}</span><span>{o}</span>
-                </button>
-              );
-            })}
+          <p className="prompt">Put the words in order to make the sentence.</p>
+          <div className="btnrow">
+            <button className="btn gold" onClick={() => speak(fullSentence, 0.9)}>🔊 Hear the sentence</button>
           </div>
-          {useChoice !== null && (
-            <div className={`fb ${useChoice === word ? "ok" : "no"}`}>
-              <h3>{useChoice === word ? "That's it — nice thinking." : "Here's why that one isn't right —"}</h3>
+
+          <div className={`sentbuild ${sentResult === "right" ? "ok" : sentResult === "wrong" ? "no" : ""}`}>
+            {placed.length === 0
+              ? <span className="ghosttext">Tap words below to start building…</span>
+              : placed.map((idx, k) => (
+                  <span key={k} className={`sw ${sentWords[idx] === word ? "target" : ""}`}>{sentWords[idx]}</span>
+                ))}
+          </div>
+
+          {!sentResult && (
+            <>
+              <div className="tiles">
+                {sentTiles.map((t) => {
+                  const used = placed.includes(t.i);
+                  return (
+                    <button key={t.i} className={`tile word ${used ? "used" : ""}`} disabled={used}
+                      onClick={() => setPlaced([...placed, t.i])}>{t.w}</button>
+                  );
+                })}
+              </div>
+              <div className="btnrow">
+                <button className="btn ghost" disabled={!placed.length} onClick={() => setPlaced(placed.slice(0, -1))}>⌫ Undo</button>
+                <button className="btn ghost" disabled={!placed.length} onClick={() => setPlaced([])}>Clear</button>
+                <button className="btn" disabled={placed.length !== sentWords.length}
+                  onClick={() => {
+                    const ok = placed.map((idx) => sentWords[idx]).join(" ") === fullSentence;
+                    setSentResult(ok ? "right" : "wrong");
+                    tally(word, ok);
+                  }}>Check</button>
+              </div>
+              <p className="small">A sentence starts with a capital letter and ends with a mark like . or ?</p>
+            </>
+          )}
+
+          {sentResult && (
+            <div className={`fb ${sentResult === "right" ? "ok" : "no"}`}>
+              <h3>{sentResult === "right" ? "That's it — nice thinking." : "Here's why that one isn't right —"}</h3>
               <p>
-                {useChoice === word
-                  ? `"${sentence.replace("___", word)}"`
-                  : `Read it back with your choice: "${sentence.replace("___", useChoice)}" — that doesn't sound right. The sentence needs "${word}".`}
+                {sentResult === "right"
+                  ? `You built it: "${fullSentence}"`
+                  : `Look at the capital letter — that word goes first, and the word with the . or ? goes last. The sentence is: "${fullSentence}"`}
               </p>
             </div>
           )}
+
           <div className="footer"><div className="in">
-            {useChoice !== null && <button className="btn" onClick={nextWord}>{i + 1 >= round.length ? "See how I did" : "Next word"}</button>}
+            {!sentResult && <button className="btn ghost" onClick={() => speak(fullSentence, 0.9)}>🔊 Again</button>}
+            {sentResult === "wrong" && (
+              <button className="btn ghost" onClick={() => { setPlaced([]); setSentResult(null); }}>Try again</button>
+            )}
+            {sentResult && <button className="btn" onClick={nextWord}>{i + 1 >= round.length ? "See how I did" : "Next word"}</button>}
           </div></div>
         </>
       )}
+    </div>
+  );
+}
+
+/* ============================================================
+   THE GARAGE
+   Doing the work builds the car. Mastering the skill earns the brick.
+   Parts unlock from stops attempted, so a hard stop still moves the build.
+   Parts are never taken away once earned.
+   ============================================================ */
+const CAR_COLORS = [
+  ["Blue", "#1B62E8"], ["Red", "#D8362A"], ["Green", "#12A05A"],
+  ["Yellow", "#F5C518"], ["Purple", "#8B3FD6"], ["Orange", "#EE7B1B"],
+];
+
+const attemptedIn = (p, rid) => conceptsIn(rid).filter((c) => p.seen && p.seen[c.id]).length;
+
+const GARAGE_PARTS = [
+  { id: "wheels", name: "Wheels", emoji: "🛞", zone: "Gear Works",
+    how: "Finish 2 stops in Gear Works", need: (p) => attemptedIn(p, "ops") >= 2,
+    choices: [["monster", "Monster tires"], ["moon", "Moon wheels"], ["classic", "Classic"]] },
+  { id: "paint", name: "Paint job", emoji: "🎨", zone: "Brick Yard",
+    how: "Finish 2 stops in Brick Yard", need: (p) => attemptedIn(p, "num") >= 2 },
+  { id: "lights", name: "Headlights", emoji: "💡", zone: "Story Mode",
+    how: "Finish 2 stops in Story Mode", need: (p) => attemptedIn(p, "read") >= 2 },
+  { id: "top", name: "Roof gear", emoji: "🪂", zone: "Build Deck",
+    how: "Finish 2 stops in Build Deck", need: (p) => attemptedIn(p, "geo") >= 2,
+    choices: [["spoiler", "Spoiler"], ["rack", "Roof rack"], ["sunroof", "Sunroof"]] },
+  { id: "dash", name: "Dashboard", emoji: "🎛", zone: "Score Tower",
+    how: "Finish a stop in Score Tower", need: (p) => attemptedIn(p, "dat") >= 1 },
+  { id: "plate", name: "Name plate", emoji: "🔖", zone: "Repair Bay",
+    how: "Finish a stop in Repair Bay", need: (p) => attemptedIn(p, "write") >= 1, names: true },
+  { id: "horn", name: "Horn", emoji: "📣", zone: "Word Forge", goTo: { name: "spell", level: 3 },
+    how: "Spell 12 sight words right", need: (p) => Object.keys(p.words || {}).length >= 12,
+    choices: [["beep", "Beep beep"], ["trumpet", "Big trumpet"], ["moo", "Cow horn"]] },
+  { id: "turbo", name: "Turbo", emoji: "🔥", zone: "Speed Math", goTo: { name: "mathdrill" },
+    how: "Get 15 right in one Speed Math run",
+    need: (p) => Math.max(p.speedMath?.sm1 || 0, p.speedMath?.sm2 || 0, p.speedMath?.sm3 || 0) >= 15 },
+  { id: "flag", name: "Victory flag", emoji: "🚩", zone: "Everywhere",
+    how: "Collect all 19 bricks", need: (p) => Object.keys(p.mastered || {}).length >= CONCEPTS.length,
+    choices: [["star", "Star"], ["bolt", "Lightning"], ["check", "Checkers"]] },
+];
+
+const partsEarned = (p) => GARAGE_PARTS.filter((x) => x.need(p));
+const nextPart = (p) => GARAGE_PARTS.find((x) => !x.need(p));
+
+/* ---------------- the car ---------------- */
+function Car({ car = {}, progress, driving, small }) {
+  const color = car.color || "#1B62E8";
+  const picks = car.picks || {};
+  const have = {};
+  GARAGE_PARTS.forEach((x) => { have[x.id] = x.need(progress); });
+  const wheelStyle = picks.wheels || "classic";
+  const topStyle = picks.top || "spoiler";
+  const flagStyle = picks.flag || "star";
+  const plate = (car.name || "BRICK").toUpperCase().slice(0, 8);
+
+  const Wheel = ({ cx }) => {
+    const r = wheelStyle === "monster" ? 25 : 20;
+    return (
+      <g>
+        <circle cx={cx} cy={116} r={r} fill="#22304A" />
+        {wheelStyle === "monster" && Array.from({ length: 8 }).map((_, k) => (
+          <rect key={k} x={cx - 2.5} y={116 - r} width="5" height="7" rx="2" fill="#0F1B2E"
+            transform={`rotate(${k * 45} ${cx} 116)`} />
+        ))}
+        <circle cx={cx} cy={116} r={r * 0.5} fill="#E6ECF6" />
+        {wheelStyle === "moon" ? (
+          <>
+            <circle cx={cx - 4} cy={113} r="3" fill="#B9C4D6" />
+            <circle cx={cx + 5} cy={119} r="2" fill="#B9C4D6" />
+          </>
+        ) : (
+          <circle cx={cx} cy={116} r={r * 0.18} fill="#22304A" />
+        )}
+      </g>
+    );
+  };
+
+  return (
+    <svg viewBox="0 0 320 160" className={`car ${driving ? "driving" : ""} ${small ? "small" : ""}`}
+      role="img" aria-label="Your car">
+      <ellipse cx="160" cy="141" rx="105" ry="8" fill="rgba(15,31,61,.14)" />
+
+      {/* turbo flames behind */}
+      {have.turbo && (
+        <g className="flame">
+          <path d="M52 104 L22 98 L48 94 L26 88 L56 92 Z" fill="#EE7B1B" />
+          <path d="M52 99 L32 95 L50 92 Z" fill="#F5C518" />
+        </g>
+      )}
+
+      {/* roof gear */}
+      {have.top && topStyle === "spoiler" && (
+        <g><rect x="238" y="62" width="46" height="8" rx="4" fill="#22304A" />
+          <rect x="246" y="68" width="7" height="16" fill="#22304A" />
+          <rect x="270" y="68" width="7" height="16" fill="#22304A" /></g>
+      )}
+      {have.top && topStyle === "rack" && (
+        <g><rect x="112" y="34" width="84" height="7" rx="3.5" fill="#22304A" />
+          <rect x="120" y="41" width="6" height="12" fill="#22304A" />
+          <rect x="182" y="41" width="6" height="12" fill="#22304A" /></g>
+      )}
+
+      {/* body */}
+      {have.paint ? (
+        <>
+          <path d="M46 112 Q40 84 66 82 L104 80 Q124 48 160 48 L200 48 Q226 50 238 80 L268 84 Q282 88 280 112 Z" fill={color} />
+          <path d="M46 112 Q40 100 44 96 L278 96 Q282 104 280 112 Z" fill="rgba(0,0,0,.12)" />
+        </>
+      ) : (
+        <path d="M46 112 Q40 84 66 82 L104 80 Q124 48 160 48 L200 48 Q226 50 238 80 L268 84 Q282 88 280 112 Z"
+          fill="#DCE3EE" stroke="#9FAEC6" strokeWidth="3" strokeDasharray="8 6" />
+      )}
+
+      {/* windows */}
+      <path d="M118 78 Q133 56 158 56 L158 78 Z" fill="#CFE3F7" />
+      <path d="M166 56 L196 56 Q216 58 226 78 L166 78 Z" fill="#CFE3F7" />
+
+      {/* dashboard glow through the windscreen */}
+      {have.dash && <><circle cx="150" cy="72" r="4" fill="#12A05A" /><circle cx="140" cy="72" r="3" fill="#F5C518" /></>}
+
+      {/* headlights */}
+      {have.lights && (
+        <g><circle cx="272" cy="92" r="9" fill="#FFF3C4" stroke="#E8C24A" strokeWidth="3" />
+          <path d="M281 92 L318 76 L318 108 Z" fill="rgba(245,197,24,.35)" /></g>
+      )}
+
+      {/* horn */}
+      {have.horn && (
+        <g><rect x="150" y="40" width="20" height="7" rx="3" fill="#22304A" />
+          <path d="M170 36 L184 30 L184 57 L170 51 Z" fill="#F5C518" stroke="#22304A" strokeWidth="2" /></g>
+      )}
+
+      {/* name plate */}
+      {have.plate && (
+        <g><rect x="240" y="112" width="46" height="17" rx="4" fill="#FFFDF6" stroke="#22304A" strokeWidth="2" />
+          <text x="263" y="125" textAnchor="middle" fontSize="11" fontWeight="800"
+            fill="#22304A" fontFamily="system-ui, sans-serif">{plate}</text></g>
+      )}
+
+      {/* victory flag */}
+      {have.flag && (
+        <g><rect x="70" y="16" width="4" height="66" fill="#22304A" />
+          <path d="M74 18 L112 27 L74 36 Z" fill={flagStyle === "check" ? "#22304A" : flagStyle === "bolt" ? "#F5C518" : "#D8362A"} />
+          {flagStyle === "star" && <text x="86" y="33" fontSize="12" fill="#FFF">★</text>}
+          {flagStyle === "bolt" && <text x="86" y="33" fontSize="12" fill="#22304A">⚡</text>}
+        </g>
+      )}
+
+      {/* wheels */}
+      {have.wheels ? (<><Wheel cx={100} /><Wheel cx={228} /></>) : (
+        <><circle cx="100" cy="116" r="20" fill="none" stroke="#9FAEC6" strokeWidth="3" strokeDasharray="7 6" />
+          <circle cx="228" cy="116" r="20" fill="none" stroke="#9FAEC6" strokeWidth="3" strokeDasharray="7 6" /></>
+      )}
+    </svg>
+  );
+}
+
+/* ---------------- Bolt the helper ---------------- */
+function Bolt({ line, hidden, onToggle }) {
+  if (hidden) {
+    return (
+      <button className="boltoff" onClick={onToggle}>🤖 Bring Bolt back</button>
+    );
+  }
+  return (
+    <div className="bolt">
+      <span className="bface">🤖</span>
+      <span className="bline">{line}</span>
+      <button className="bbtn" title="Read it to me" onClick={() => speak(plain(line), 0.92)}>🔊</button>
+      <button className="bbtn" title="Hide Bolt" onClick={onToggle}>✕</button>
+    </div>
+  );
+}
+
+/* Bolt's line depends on where you are and what's next. */
+function boltLine(view, progress) {
+  const np = nextPart(progress);
+  const bricks = Object.keys(progress.mastered || {}).length;
+  switch (view.name) {
+    case "map":
+      if (!progress.car || !progress.car.name) return "Welcome to the workshop! Head to My Garage and name your ride first.";
+      return np ? `Next up: ${np.name.toLowerCase()}! ${np.how}.` : "The build is finished. Take it for a drive!";
+    case "region": return "Pick a challenge. Three stages: what you'll learn, how to do it, then five questions.";
+    case "concept": return "Stage one tells you what you're learning. Tap a line to hear it.";
+    case "garage": return np ? `${np.emoji} ${np.name} is next. ${np.how}.` : "Every part is on. She's ready to roll!";
+    case "spell": return "Hear the word, build it from letters, then put the sentence in order.";
+    case "mathdrill": return "Fifteen right in one run gets you the turbo.";
+    case "timed": return "Don't freeze on a hard one. Skip it and come back.";
+    case "collection": return `${bricks} of ${CONCEPTS.length} bricks so far. Every run counts, even the tricky ones.`;
+    default: return "Let's build something.";
+  }
+}
+
+/* ---------------- Garage screen ---------------- */
+function Garage({ progress, push, go }) {
+  const car = progress.car || {};
+  const [name, setName] = useState(car.name || "");
+  const [driving, setDriving] = useState(false);
+  const earned = partsEarned(progress);
+  const np = nextPart(progress);
+  const setCar = (patch) => push({ ...progress, car: { ...car, ...patch } });
+  const setPick = (partId, val) => push({ ...progress, car: { ...car, picks: { ...(car.picks || {}), [partId]: val } } });
+  const canDrive = earned.some((p) => p.id === "wheels") && earned.length >= 3;
+
+  return (
+    <div className="stack">
+      <div className="hero">
+        <h1>🔧 My Garage</h1>
+        <p className="lede" style={{ color: "#4A5764", margin: 0 }}>
+          {earned.length} of {GARAGE_PARTS.length} parts on. Doing the work adds the parts — they never come off.
+        </p>
+      </div>
+
+      <div className="stage">
+        <Car car={car} progress={progress} driving={driving} />
+      </div>
+
+      {canDrive && (
+        <div className="btnrow">
+          <button className="btn gold" onClick={() => { setDriving(true); setTimeout(() => setDriving(false), 2600); }}>
+            🏁 Take it for a drive
+          </button>
+        </div>
+      )}
+
+      <div className="card stack">
+        <h3 style={{ margin: 0, fontSize: 19 }}>Name your ride</h3>
+        <div className="namerow">
+          <input className="nameinput" value={name} maxLength={8} placeholder="BRICK"
+            onChange={(e) => setName(e.target.value.replace(/[^a-zA-Z0-9 ]/g, ""))} />
+          <button className="btn" onClick={() => setCar({ name: name || "BRICK" })}>Save</button>
+        </div>
+        <h3 style={{ margin: "6px 0 0", fontSize: 19 }}>Colour</h3>
+        <div className="swatches">
+          {CAR_COLORS.map(([label, hex]) => (
+            <button key={hex} className={`swatch ${(car.color || "#1B62E8") === hex ? "on" : ""}`}
+              style={{ background: hex }} title={label} onClick={() => setCar({ color: hex })} />
+          ))}
+        </div>
+      </div>
+
+      <h3 style={{ margin: "12px 0 0", fontSize: 21 }}>Parts</h3>
+      <div className="stack">
+        {GARAGE_PARTS.map((part) => {
+          const got = part.need(progress);
+          return (
+            <div key={part.id} className={`partrow ${got ? "got" : ""}`}>
+              <div className="phead">
+                <span className="pemoji">{got ? part.emoji : "🔒"}</span>
+                <span className="t">
+                  <b>{part.name}</b>
+                  <span className="small">{got ? `Earned in ${part.zone}` : part.how}</span>
+                </span>
+                {!got && np && np.id === part.id && <span className="pill gold">Next up</span>}
+              </div>
+              {got && part.choices && (
+                <div className="btnrow" style={{ marginTop: 10 }}>
+                  {part.choices.map(([val, label]) => (
+                    <button key={val} className={`btn ${(car.picks || {})[part.id] === val ? "" : "ghost"}`}
+                      style={{ fontSize: 15, padding: "11px 15px", minHeight: 46 }}
+                      onClick={() => setPick(part.id, val)}>{label}</button>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="footer"><div className="in">
+        <button className="btn ghost" onClick={() => go({ name: "map" })}>Back</button>
+        {np && <button className="btn" onClick={() => go({ name: "map" })}>Go earn {np.name.toLowerCase()}</button>}
+      </div></div>
     </div>
   );
 }
@@ -2266,8 +2675,10 @@ function RegionView({ rid, progress, go }) {
     <div className="stack">
       <div className="hero">
         <h1>{r.icon} {r.name}</h1>
-        <p className="lede" style={{ color: "#4A5764", margin: 0 }}>{r.sub}</p>
+        <p className="lede" style={{ color: "#4A5764", margin: "0 0 4px" }}>{r.sub}</p>
       </div>
+      <h2 style={{ margin: "4px 0 0", fontSize: 26 }}>Pick your challenge!</h2>
+      <p className="small" style={{ margin: 0 }}>Tap one to start. Each one takes about 8 minutes.</p>
       <div className="stack">
         {cs.map((c) => {
           const done = !!progress.mastered?.[c.id];
@@ -2290,6 +2701,7 @@ function RegionView({ rid, progress, go }) {
 /* ---------------- concept: teach then practice ---------------- */
 function ConceptView({ cid, progress, push, go, onWord }) {
   const c = byId(cid);
+  const zone = REGIONS.find((r) => r.id === c.region) || { name: "", icon: "" };
   const L = LESSONS[cid] || { goals: [], steps: [] };
   const [stage, setStage] = useState(1);
   const [showAnother, setShowAnother] = useState(false);
@@ -2306,18 +2718,25 @@ function ConceptView({ cid, progress, push, go, onWord }) {
       <div className="stack">
         <StageDots />
         <div className="hero">
-          <div className="small" style={{ fontWeight: 800 }}>Stage 1 of 3</div>
+          <div className="crumb">{zone.icon} {zone.name} · Stage 1 of 3</div>
           <h1>{c.icon} {c.title}</h1>
-          <p className="lede" style={{ color: "#4A5764", margin: 0 }}>Here's what you'll be able to do when you finish this stop.</p>
         </div>
-        <div className="goals">
+
+        <h2 style={{ margin: "2px 0 0", fontSize: 25 }}>What you will learn is…</h2>
+        <ul className="goals">
           {L.goals.map(([ico, t], k) => (
-            <div className="goal" key={k}><span className="gi">{ico}</span><span><RichText text={t} onWord={onWord} /></span></div>
+            <li className="goal" key={k} onClick={() => speak(plain(t), 0.9)}>
+              <span className="gi">{ico}</span>
+              <span className="gt"><RichText text={t} onWord={onWord} /></span>
+              <span className="gspk">🔊</span>
+            </li>
           ))}
-        </div>
+        </ul>
+        <p className="small">Tap any line to hear it read out loud.</p>
+
         <div className="footer"><div className="in">
           <button className="btn ghost" onClick={() => go({ name: "region", rid: c.region })}>Back</button>
-          <button className="btn" onClick={() => setStage(2)}>Show me how →</button>
+          <button className="btn" onClick={() => setStage(2)}>Learn more →</button>
         </div></div>
       </div>
     );
@@ -2325,35 +2744,58 @@ function ConceptView({ cid, progress, push, go, onWord }) {
 
   /* ---- Stage 2: how to do it ---- */
   if (stage === 2) {
+    const scope = [
+      `${c.title}.`,
+      plain(c.idea),
+      "Here are the steps.",
+      ...L.steps.map((x, k) => `Step ${k + 1}. ${plain(x)}`),
+    ].join(" ");
     return (
       <div className="stack">
         <StageDots />
         <div className="hero">
-          <div className="small" style={{ fontWeight: 800 }}>Stage 2 of 3</div>
-          <h1>How to do it</h1>
+          <div className="crumb">{zone.icon} {zone.name} · Stage 2 of 3</div>
+          <h1>How to do it: {c.title}</h1>
         </div>
+
+        <div className="btnrow">
+          <button className="btn gold" onClick={() => speak(scope, 0.9)}>🔊 Read this to me</button>
+          <button className="btn ghost" onClick={() => window.speechSynthesis && window.speechSynthesis.cancel()}>⏹ Stop</button>
+        </div>
+
         <div className="idea">
           <h2>The idea</h2>
           <p><RichText text={c.idea} onWord={onWord} /></p>
           <div className="egbox"><RichText text={c.example} onWord={onWord} /></div>
         </div>
+
+        <h2 style={{ margin: "2px 0 0", fontSize: 25 }}>The steps</h2>
         <ol className="steps">
-          {L.steps.map((s, k) => (
-            <li key={k}><span className="sn">{k + 1}</span><span><RichText text={s} onWord={onWord} /></span></li>
+          {L.steps.map((x, k) => (
+            <li key={k} onClick={() => speak(`Step ${k + 1}. ${plain(x)}`, 0.9)}>
+              <span className="sn">{k + 1}</span>
+              <span className="gt"><RichText text={x} onWord={onWord} /></span>
+              <span className="gspk">🔊</span>
+            </li>
           ))}
         </ol>
+        <p className="small">Tap any step to hear just that one. Tap a <span className="vw">dotted word</span> to see what it means.</p>
+
         {showAnother ? (
-          <div className="idea" style={{ background: "#FBEDD5", borderColor: "#EBCB92" }}>
+          <div className="idea" style={{ background: "#FEF3CE", borderColor: "#EBCB92" }}>
             <h2>Another way to see it</h2>
             <p><RichText text={c.another} onWord={onWord} /></p>
+            <button className="btn ghost" onClick={() => speak(plain(c.another), 0.9)}>🔊 Read this to me</button>
           </div>
         ) : (
           <button className="btn ghost" onClick={() => setShowAnother(true)}>Show me another way →</button>
         )}
-        <p className="small">Tap any <span className="vw">dotted word</span> to see what it means.</p>
+
         <div className="footer"><div className="in">
           <button className="btn ghost" onClick={() => setStage(1)}>Back</button>
-          <button className="btn" onClick={() => setStage(3)}>Try 5 questions</button>
+          <button className="btn" onClick={() => { if (window.speechSynthesis) window.speechSynthesis.cancel(); setStage(3); }}>
+            Now try 5 questions
+          </button>
         </div></div>
       </div>
     );
@@ -2383,6 +2825,7 @@ function ConceptView({ cid, progress, push, go, onWord }) {
 
 /* ---------------- practice engine ---------------- */
 function Practice({ concept, questions, onWord, onDone, goBack, reteach, timed }) {
+  const zoneLabel = concept ? `${(REGIONS.find((r) => r.id === concept.region) || {}).name || ""} · ` : "";
   const [i, setI] = useState(0);
   const [val, setVal] = useState(undefined);
   const [locked, setLocked] = useState(false);
@@ -2455,7 +2898,7 @@ function Practice({ concept, questions, onWord, onDone, goBack, reteach, timed }
 
   return (
     <div className="stack">
-      <div className="qnum">Question {i + 1} of {questions.length}{concept ? ` · ${concept.title}` : ""}</div>
+      <div className="qnum">{zoneLabel}Question {i + 1} of {questions.length}{concept ? ` · ${concept.title}` : ""}</div>
 
       {passage && (
         <div className="passage">
