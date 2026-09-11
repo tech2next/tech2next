@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import * as THREE from "three";
 
 /* ============================================================
    TEXAS TRAIL — STAAR Grade 3 concept practice
@@ -319,6 +320,21 @@ const CSS = `
 .flame { animation:flick .28s steps(2) infinite; transform-origin:52px 96px; }
 @keyframes flick { from { opacity:.55; transform:scaleX(.85) } to { opacity:1; transform:scaleX(1.12) } }
 @media (prefers-reduced-motion:reduce){ .car.driving,.flame { animation:none } }
+
+/* ---- 3D drive mode ---- */
+.drive3d { position:fixed; inset:0; z-index:2000; background:#9CCB6E; display:flex; flex-direction:column; }
+.drive3d-top { display:flex; align-items:center; justify-content:space-between; padding:12px 16px;
+  background:rgba(255,255,255,.88); font-family:var(--display); font-size:19px; }
+.drive3d-mount { flex:1; position:relative; touch-action:none; }
+.drive3d-mount canvas { display:block; width:100%; height:100%; }
+.drive3d-hint { position:absolute; top:66px; left:0; right:0; text-align:center; margin:0; pointer-events:none;
+  color:#0F1F3D; font-weight:800; text-shadow:0 1px 3px rgba(255,255,255,.7); transition:opacity .6s; }
+.drive3d-pad { position:fixed; bottom:20px; left:0; right:0; display:flex; justify-content:space-between;
+  padding:0 22px; pointer-events:none; }
+.dpad-btn { pointer-events:auto; width:60px; height:60px; border-radius:50%; border:none;
+  background:rgba(255,255,255,.88); box-shadow:0 3px 0 rgba(0,0,0,.25); font-size:24px; color:var(--ink);
+  touch-action:none; }
+.dpad-mid { display:flex; flex-direction:column; gap:8px; pointer-events:auto; }
 
 .nextup { border-left:10px solid var(--sunset); }
 .namerow { display:flex; gap:10px; }
@@ -1540,6 +1556,9 @@ export default function BrickDash() {
           </div>
         </div>
       )}
+      {loaded && view.name === "drive3d" && (
+        <Drive3DScene car={progress.car || {}} progress={progress} onExit={() => setView({ name: "garage" })} />
+      )}
     </div>
   );
 }
@@ -2004,19 +2023,25 @@ const attemptedIn = (p, rid) => conceptsIn(rid).filter((c) => p.seen && p.seen[c
 
 const GARAGE_PARTS = [
   { id: "wheels", name: "Wheels", emoji: "🛞", zone: "Gear Works",
-    how: "Finish 2 stops in Gear Works", need: (p) => attemptedIn(p, "ops") >= 2,
+    how: "Finish 2 stops in Gear Works — just finishing them earns it, any score counts",
+    need: (p) => attemptedIn(p, "ops") >= 2,
     choices: [["monster", "Monster tires"], ["moon", "Moon wheels"], ["classic", "Classic"]] },
   { id: "paint", name: "Paint job", emoji: "🎨", zone: "Brick Yard",
-    how: "Finish 2 stops in Brick Yard", need: (p) => attemptedIn(p, "num") >= 2 },
+    how: "Finish 2 stops in Brick Yard — just finishing them earns it, any score counts",
+    need: (p) => attemptedIn(p, "num") >= 2 },
   { id: "lights", name: "Headlights", emoji: "💡", zone: "Story Mode",
-    how: "Finish 2 stops in Story Mode", need: (p) => attemptedIn(p, "read") >= 2 },
+    how: "Finish 2 stops in Story Mode — just finishing them earns it, any score counts",
+    need: (p) => attemptedIn(p, "read") >= 2 },
   { id: "top", name: "Roof gear", emoji: "🪂", zone: "Build Deck",
-    how: "Finish 2 stops in Build Deck", need: (p) => attemptedIn(p, "geo") >= 2,
+    how: "Finish 2 stops in Build Deck — just finishing them earns it, any score counts",
+    need: (p) => attemptedIn(p, "geo") >= 2,
     choices: [["spoiler", "Spoiler"], ["rack", "Roof rack"], ["sunroof", "Sunroof"]] },
   { id: "dash", name: "Dashboard", emoji: "🎛", zone: "Score Tower",
-    how: "Finish a stop in Score Tower", need: (p) => attemptedIn(p, "dat") >= 1 },
+    how: "Finish a stop in Score Tower — just finishing it earns it, any score counts",
+    need: (p) => attemptedIn(p, "dat") >= 1 },
   { id: "plate", name: "Name plate", emoji: "🔖", zone: "Repair Bay",
-    how: "Finish a stop in Repair Bay", need: (p) => attemptedIn(p, "write") >= 1, names: true },
+    how: "Finish a stop in Repair Bay — just finishing it earns it, any score counts",
+    need: (p) => attemptedIn(p, "write") >= 1, names: true },
   { id: "horn", name: "Horn", emoji: "📣", zone: "Word Forge", goTo: { name: "spell", level: 3 },
     how: "Spell 12 sight words right", need: (p) => Object.keys(p.words || {}).length >= 12,
     choices: [["beep", "Beep beep"], ["trumpet", "Big trumpet"], ["moo", "Cow horn"]] },
@@ -2144,6 +2169,299 @@ function Car({ car = {}, progress, driving, small }) {
   );
 }
 
+/* ---------------- 3D driving mode ---------------- */
+function Drive3DScene({ car = {}, progress, onExit }) {
+  const mountRef = useRef(null);
+
+  useEffect(() => {
+    const mount = mountRef.current;
+    let width = mount.clientWidth, height = mount.clientHeight;
+
+    const have = {};
+    GARAGE_PARTS.forEach((x) => { have[x.id] = x.need(progress); });
+    const picks = car.picks || {};
+    const bodyColor = car.color || "#1B62E8";
+    const name = (car.name || "BRICK").toUpperCase().slice(0, 8);
+    const RADIUS = 55;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x9ccb6e);
+    scene.fog = new THREE.Fog(0x9ccb6e, 55, 140);
+
+    const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 500);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(width, height);
+    mount.appendChild(renderer.domElement);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+    const sun = new THREE.DirectionalLight(0xffffff, 0.75);
+    sun.position.set(40, 60, 20);
+    scene.add(sun);
+
+    /* ground: canvas-drawn grid texture, no external images */
+    const gc = document.createElement("canvas");
+    gc.width = gc.height = 256;
+    const gctx = gc.getContext("2d");
+    gctx.fillStyle = "#8fc46a";
+    gctx.fillRect(0, 0, 256, 256);
+    gctx.strokeStyle = "rgba(255,255,255,.35)";
+    gctx.lineWidth = 3;
+    for (let i = 0; i <= 256; i += 32) {
+      gctx.beginPath(); gctx.moveTo(i, 0); gctx.lineTo(i, 256); gctx.stroke();
+      gctx.beginPath(); gctx.moveTo(0, i); gctx.lineTo(256, i); gctx.stroke();
+    }
+    const groundTex = new THREE.CanvasTexture(gc);
+    groundTex.wrapS = groundTex.wrapT = THREE.RepeatWrapping;
+    groundTex.repeat.set(30, 30);
+    const ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(300, 300),
+      new THREE.MeshLambertMaterial({ map: groundTex })
+    );
+    ground.rotation.x = -Math.PI / 2;
+    scene.add(ground);
+
+    /* cones marking a loose track boundary */
+    const coneGeo = new THREE.ConeGeometry(1, 2.2, 10);
+    const coneMat = new THREE.MeshLambertMaterial({ color: 0xee7b1b });
+    for (let i = 0; i < 24; i++) {
+      const a = (i / 24) * Math.PI * 2;
+      const cone = new THREE.Mesh(coneGeo, coneMat);
+      cone.position.set(Math.cos(a) * RADIUS, 1.1, Math.sin(a) * RADIUS);
+      scene.add(cone);
+    }
+
+    /* scattered low-poly trees */
+    function makeTree(x, z) {
+      const g = new THREE.Group();
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.5, 3, 6),
+        new THREE.MeshLambertMaterial({ color: 0x8b5a2b }));
+      trunk.position.y = 1.5;
+      const leaves = new THREE.Mesh(new THREE.ConeGeometry(2.4, 4.5, 8),
+        new THREE.MeshLambertMaterial({ color: 0x2f8f4e }));
+      leaves.position.y = 4.6;
+      g.add(trunk, leaves);
+      g.position.set(x, 0, z);
+      return g;
+    }
+    for (let i = 0; i < 14; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const r = 65 + Math.random() * 25;
+      scene.add(makeTree(Math.cos(a) * r, Math.sin(a) * r));
+    }
+
+    function makeNameSprite(text) {
+      const c = document.createElement("canvas");
+      c.width = 256; c.height = 96;
+      const ctx = c.getContext("2d");
+      ctx.fillStyle = "#fffdf6";
+      ctx.strokeStyle = "#22304a";
+      ctx.lineWidth = 6;
+      if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(6, 6, 244, 84, 16); ctx.fill(); ctx.stroke(); }
+      else { ctx.fillRect(6, 6, 244, 84); ctx.strokeRect(6, 6, 244, 84); }
+      ctx.fillStyle = "#22304a";
+      ctx.font = "bold 42px sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(text, 128, 52);
+      const tex = new THREE.CanvasTexture(c);
+      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex }));
+      sprite.scale.set(3.2, 1.2, 1);
+      return sprite;
+    }
+
+    /* ---- the car itself, built from primitives, styled from the garage ---- */
+    const carGroup = new THREE.Group();
+    const body = new THREE.Mesh(
+      new THREE.BoxGeometry(2.2, 0.9, 4.2),
+      new THREE.MeshLambertMaterial({ color: have.paint ? bodyColor : 0xdce3ee })
+    );
+    body.position.y = 0.85;
+    carGroup.add(body);
+
+    const cabin = new THREE.Mesh(
+      new THREE.BoxGeometry(1.7, 0.7, 2.0),
+      new THREE.MeshLambertMaterial({ color: 0xcfe3f7 })
+    );
+    cabin.position.set(0, 1.5, -0.2);
+    carGroup.add(cabin);
+
+    const wheelStyle = picks.wheels || "classic";
+    const wheelRadius = wheelStyle === "monster" ? 0.65 : 0.5;
+    const wheelMat = new THREE.MeshLambertMaterial({ color: 0x22304a });
+    const wheelGeo = new THREE.CylinderGeometry(wheelRadius, wheelRadius, 0.4, 16);
+    const wheels = [];
+    [[-1.15, 0.5, 1.4], [1.15, 0.5, 1.4], [-1.15, 0.5, -1.4], [1.15, 0.5, -1.4]].forEach(([x, y, z]) => {
+      const w = new THREE.Mesh(wheelGeo, wheelMat);
+      w.rotation.z = Math.PI / 2;
+      w.position.set(x, y, z);
+      carGroup.add(w);
+      wheels.push(w);
+    });
+
+    if (have.top && picks.top === "spoiler") {
+      const wing = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.1, 0.5),
+        new THREE.MeshLambertMaterial({ color: 0x22304a }));
+      wing.position.set(0, 1.5, 1.9);
+      carGroup.add(wing);
+    }
+    if (have.top && picks.top === "rack") {
+      const rack = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.1, 1.6),
+        new THREE.MeshLambertMaterial({ color: 0x22304a }));
+      rack.position.set(0, 1.9, -0.2);
+      carGroup.add(rack);
+    }
+    if (have.lights) {
+      [[-0.8, 0.9, -2.05], [0.8, 0.9, -2.05]].forEach(([x, y, z]) => {
+        const light = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 8),
+          new THREE.MeshBasicMaterial({ color: 0xfff3c4 }));
+        light.position.set(x, y, z);
+        carGroup.add(light);
+      });
+    }
+    if (have.flag) {
+      const flagColor = picks.flag === "check" ? 0x22304a : picks.flag === "bolt" ? 0xf5c518 : 0xd8362a;
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 2.2, 6),
+        new THREE.MeshLambertMaterial({ color: 0x22304a }));
+      pole.position.set(-0.9, 2.0, 1.6);
+      const flagMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.5),
+        new THREE.MeshLambertMaterial({ color: flagColor, side: THREE.DoubleSide }));
+      flagMesh.position.set(-0.5, 2.8, 1.6);
+      carGroup.add(pole, flagMesh);
+    }
+    if (have.plate) {
+      const plate = makeNameSprite(name);
+      plate.position.set(0, 1.1, 2.25);
+      carGroup.add(plate);
+    }
+    let flame = null;
+    if (have.turbo) {
+      flame = new THREE.Mesh(new THREE.ConeGeometry(0.35, 1.1, 8),
+        new THREE.MeshBasicMaterial({ color: 0xf5c518, transparent: true, opacity: 0 }));
+      flame.rotation.x = Math.PI / 2;
+      flame.position.set(0, 0.85, 2.4);
+      carGroup.add(flame);
+    }
+    scene.add(carGroup);
+
+    /* ---- controls ---- */
+    const keys = {};
+    const touch = { fwd: false, back: false, left: false, right: false };
+    mount.touchState = touch;
+
+    function onKeyDown(e) {
+      const k = e.key.toLowerCase();
+      if (["arrowup", "arrowdown", "arrowleft", "arrowright", "w", "a", "s", "d"].includes(k)) {
+        keys[k] = true; e.preventDefault();
+      }
+    }
+    function onKeyUp(e) { keys[e.key.toLowerCase()] = false; }
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
+
+    let heading = Math.PI;
+    let speed = 0;
+    let frameId;
+
+    function animate() {
+      const accel = (keys["arrowup"] || keys["w"] || touch.fwd) ? 1
+        : (keys["arrowdown"] || keys["s"] || touch.back) ? -1 : 0;
+      const turn = (keys["arrowleft"] || keys["a"] || touch.left) ? 1
+        : (keys["arrowright"] || keys["d"] || touch.right) ? -1 : 0;
+
+      speed += accel * 0.02;
+      speed *= 0.955;
+      if (Math.abs(speed) < 0.004) speed = 0;
+      speed = Math.max(-0.25, Math.min(0.45, speed));
+      if (Math.abs(speed) > 0.01) heading += turn * 0.035 * (speed > 0 ? 1 : -1);
+
+      carGroup.position.x += Math.sin(heading) * speed;
+      carGroup.position.z += Math.cos(heading) * speed;
+      carGroup.rotation.y = heading;
+
+      const dist = Math.hypot(carGroup.position.x, carGroup.position.z);
+      if (dist > RADIUS - 3) {
+        const k = (RADIUS - 3) / dist;
+        carGroup.position.x *= k; carGroup.position.z *= k;
+        speed *= 0.4;
+      }
+
+      wheels.forEach((w) => { w.rotation.x += speed * 4; });
+      if (flame) flame.material.opacity = Math.abs(speed) > 0.28 ? Math.min(1, Math.abs(speed) * 3) : 0.15;
+
+      const camDist = 7, camHeight = 3.2;
+      const targetCamPos = new THREE.Vector3(
+        carGroup.position.x - Math.sin(heading) * camDist,
+        camHeight,
+        carGroup.position.z - Math.cos(heading) * camDist
+      );
+      camera.position.lerp(targetCamPos, 0.12);
+      camera.lookAt(carGroup.position.x, 1.1, carGroup.position.z);
+
+      renderer.render(scene, camera);
+      frameId = requestAnimationFrame(animate);
+    }
+    animate();
+
+    function onResize() {
+      width = mount.clientWidth; height = mount.clientHeight;
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+    }
+    window.addEventListener("resize", onResize);
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
+      window.removeEventListener("resize", onResize);
+      if (renderer.domElement.parentNode === mount) mount.removeChild(renderer.domElement);
+      scene.traverse((obj) => {
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) {
+          if (Array.isArray(obj.material)) obj.material.forEach((m) => m.dispose());
+          else obj.material.dispose();
+        }
+      });
+      renderer.dispose();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const setTouch = (key, val) => {
+    if (mountRef.current && mountRef.current.touchState) mountRef.current.touchState[key] = val;
+  };
+
+  return (
+    <div className="drive3d">
+      <div className="drive3d-top">
+        <b>🚗 {(car.name || "BRICK").toUpperCase()}</b>
+        <button className="btn ghost" onClick={onExit}>✕ Done driving</button>
+      </div>
+      <div className="drive3d-mount" ref={mountRef}>
+        <p className="drive3d-hint">Arrow keys or WASD to drive — or use the buttons below</p>
+      </div>
+      <div className="drive3d-pad">
+        <button className="dpad-btn"
+          onPointerDown={() => setTouch("left", true)} onPointerUp={() => setTouch("left", false)}
+          onPointerLeave={() => setTouch("left", false)}>⟲</button>
+        <div className="dpad-mid">
+          <button className="dpad-btn"
+            onPointerDown={() => setTouch("fwd", true)} onPointerUp={() => setTouch("fwd", false)}
+            onPointerLeave={() => setTouch("fwd", false)}>▲</button>
+          <button className="dpad-btn"
+            onPointerDown={() => setTouch("back", true)} onPointerUp={() => setTouch("back", false)}
+            onPointerLeave={() => setTouch("back", false)}>▼</button>
+        </div>
+        <button className="dpad-btn"
+          onPointerDown={() => setTouch("right", true)} onPointerUp={() => setTouch("right", false)}
+          onPointerLeave={() => setTouch("right", false)}>⟳</button>
+      </div>
+    </div>
+  );
+}
+
 /* ---------------- Bolt the helper ---------------- */
 function Bolt({ line, hidden, onToggle }) {
   if (hidden) {
@@ -2198,6 +2516,11 @@ function Garage({ progress, push, go }) {
         <p className="lede" style={{ color: "#4A5764", margin: 0 }}>
           {earned.length} of {GARAGE_PARTS.length} parts on. Doing the work adds the parts — they never come off.
         </p>
+        <p className="lede" style={{ color: "#4A5764", margin: "4px 0 0", fontSize: 15 }}>
+          💡 For most parts, just <b>finishing</b> a stop's 5 questions unlocks it — your score doesn't matter for that.
+          Getting 4 or 5 right also earns a 🧱 brick, which is a separate thing (that's your mastery record on the map).
+          Once you've got wheels plus 2 more parts, a "Take it for a real drive" button shows up here.
+        </p>
       </div>
 
       <div className="stage">
@@ -2206,8 +2529,8 @@ function Garage({ progress, push, go }) {
 
       {canDrive && (
         <div className="btnrow">
-          <button className="btn gold" onClick={() => { setDriving(true); setTimeout(() => setDriving(false), 2600); }}>
-            🏁 Take it for a drive
+          <button className="btn gold" onClick={() => go({ name: "drive3d" })}>
+            🏁 Take it for a real drive
           </button>
         </div>
       )}
