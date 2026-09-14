@@ -325,6 +325,8 @@ const CSS = `
 .drive3d { position:fixed; inset:0; z-index:2000; background:#9CCB6E; display:flex; flex-direction:column; }
 .drive3d-top { display:flex; align-items:center; justify-content:space-between; padding:12px 16px;
   background:rgba(255,255,255,.88); font-family:var(--display); font-size:19px; }
+.bd-timer-badge { font-family:var(--ui); font-weight:800; font-size:16px; background:#DCE7FD;
+  border-radius:999px; padding:6px 14px; }
 .drive3d-mount { flex:1; position:relative; touch-action:none; }
 .drive3d-mount canvas { display:block; width:100%; height:100%; }
 .drive3d-hint { position:absolute; top:66px; left:0; right:0; text-align:center; margin:0; pointer-events:none;
@@ -1557,7 +1559,12 @@ export default function BrickDash() {
         </div>
       )}
       {loaded && view.name === "drive3d" && (
-        <Drive3DScene car={progress.car || {}} progress={progress} onExit={() => setView({ name: "garage" })} />
+        <Drive3DScene
+          car={progress.car || {}}
+          progress={progress}
+          timeLimitSec={view.seconds}
+          onExit={() => setView(view.returnTo || { name: "garage" })}
+        />
       )}
     </div>
   );
@@ -1609,7 +1616,7 @@ function TrailMap({ progress, go }) {
       <div className="hero" style={{ paddingTop: 18 }}>
         <h1>Choose a mission</h1>
         <p className="lede" style={{ maxWidth: 520, color: "#4A5764" }}>
-          Every mission you finish adds a part to your car. Four right out of five also earns a brick.
+          Every mission you finish adds a part to your car. Score 80% or higher also earns a brick.
         </p>
       </div>
 
@@ -2020,6 +2027,8 @@ const CAR_COLORS = [
 ];
 
 const attemptedIn = (p, rid) => conceptsIn(rid).filter((c) => p.seen && p.seen[c.id]).length;
+/* Passing score for any stop: 80% or higher (rounded up), so a 5-question stop needs 4 right. */
+const passThreshold = (total) => Math.max(1, Math.ceil(total * 0.8));
 
 const GARAGE_PARTS = [
   { id: "wheels", name: "Wheels", emoji: "🛞", zone: "Gear Works",
@@ -2170,8 +2179,22 @@ function Car({ car = {}, progress, driving, small }) {
 }
 
 /* ---------------- 3D driving mode ---------------- */
-function Drive3DScene({ car = {}, progress, onExit }) {
+function Drive3DScene({ car = {}, progress, onExit, timeLimitSec }) {
   const mountRef = useRef(null);
+  const [secsLeft, setSecsLeft] = useState(timeLimitSec || null);
+  const onExitRef = useRef(onExit);
+  onExitRef.current = onExit;
+
+  useEffect(() => {
+    if (!timeLimitSec) return;
+    const id = setInterval(() => {
+      setSecsLeft((s) => {
+        if (s <= 1) { clearInterval(id); onExitRef.current(); return 0; }
+        return s - 1;
+      });
+    }, 1000);
+    return () => clearInterval(id);
+  }, [timeLimitSec]);
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -2437,6 +2460,9 @@ function Drive3DScene({ car = {}, progress, onExit }) {
     <div className="drive3d">
       <div className="drive3d-top">
         <b>🚗 {(car.name || "BRICK").toUpperCase()}</b>
+        {secsLeft !== null && (
+          <span className="bd-timer-badge">⏱ {Math.floor(secsLeft / 60)}:{String(secsLeft % 60).padStart(2, "0")}</span>
+        )}
         <button className="btn ghost" onClick={onExit}>✕ Done driving</button>
       </div>
       <div className="drive3d-mount" ref={mountRef}>
@@ -2507,7 +2533,7 @@ function Garage({ progress, push, go }) {
   const np = nextPart(progress);
   const setCar = (patch) => push({ ...progress, car: { ...car, ...patch } });
   const setPick = (partId, val) => push({ ...progress, car: { ...car, picks: { ...(car.picks || {}), [partId]: val } } });
-  const canDrive = earned.some((p) => p.id === "wheels") && earned.length >= 3;
+  const canDrive = Object.keys(progress.seen || {}).length >= 1;
 
   return (
     <div className="stack">
@@ -2517,9 +2543,9 @@ function Garage({ progress, push, go }) {
           {earned.length} of {GARAGE_PARTS.length} parts on. Doing the work adds the parts — they never come off.
         </p>
         <p className="lede" style={{ color: "#4A5764", margin: "4px 0 0", fontSize: 15 }}>
-          💡 For most parts, just <b>finishing</b> a stop's 5 questions unlocks it — your score doesn't matter for that.
-          Getting 4 or 5 right also earns a 🧱 brick, which is a separate thing (that's your mastery record on the map).
-          Once you've got wheels plus 2 more parts, a "Take it for a real drive" button shows up here.
+          💡 For most parts, just <b>finishing</b> a stop's questions unlocks it — your score doesn't matter for that.
+          Scoring <b>80% or higher</b> also earns a 🧱 brick, which is a separate thing (that's your mastery record on the map).
+          Finish just 1 stop anywhere and a "Take it for a real drive" button shows up here.
         </p>
       </div>
 
@@ -3130,6 +3156,7 @@ function ConceptView({ cid, progress, push, go, onWord }) {
       concept={c}
       questions={c.qs}
       onWord={onWord}
+      onDrive={() => go({ name: "drive3d", seconds: 120, returnTo: { name: "region", rid: c.region } })}
       onDone={(score) => {
         const wrong = c.qs.length - score;
         let p = record(progress, "Concept stops", score, wrong);
@@ -3137,7 +3164,7 @@ function ConceptView({ cid, progress, push, go, onWord }) {
         p.best = { ...p.best, [c.id]: Math.max(p.best?.[c.id] || 0, score) };
         const st = (p.stop && p.stop[c.id]) || { right: 0, wrong: 0, runs: 0 };
         p.stop = { ...(p.stop || {}), [c.id]: { right: st.right + score, wrong: st.wrong + wrong, runs: st.runs + 1 } };
-        if (score >= c.qs.length - 1) p.mastered = { ...p.mastered, [c.id]: true };
+        if (score >= passThreshold(c.qs.length)) p.mastered = { ...p.mastered, [c.id]: true };
         push(p);
       }}
       goBack={() => go({ name: "region", rid: c.region })}
@@ -3147,7 +3174,7 @@ function ConceptView({ cid, progress, push, go, onWord }) {
 }
 
 /* ---------------- practice engine ---------------- */
-function Practice({ concept, questions, onWord, onDone, goBack, reteach, timed }) {
+function Practice({ concept, questions, onWord, onDone, goBack, reteach, timed, onDrive }) {
   const zoneLabel = concept ? `${(REGIONS.find((r) => r.id === concept.region) || {}).name || ""} · ` : "";
   const [i, setI] = useState(0);
   const [val, setVal] = useState(undefined);
@@ -3177,7 +3204,7 @@ function Practice({ concept, questions, onWord, onDone, goBack, reteach, timed }
     if (finished && !reported.current) {
       reported.current = true;
       onDone(score);
-      if (score >= questions.length - 1) setCheer(true);
+      if (score >= passThreshold(questions.length)) setCheer(true);
     }
   }, [finished, score, onDone, questions.length]);
 
@@ -3200,12 +3227,15 @@ function Practice({ concept, questions, onWord, onDone, goBack, reteach, timed }
           <p className="lede" style={{ color: "#4A5764", margin: 0 }}>
             {perfect
               ? "Every single one. Brick collected."
-              : score >= questions.length - 1
-              ? "Brick collected — strong run. Read the one you missed once more before you go."
-              : "You're getting it. Reread the steps in stage 2, then run these again — four out of five earns the brick."}
+              : score >= passThreshold(questions.length)
+              ? "Brick collected — strong run, 80% or higher earns it!"
+              : `You're getting it. Reread the steps in stage 2, then run these again — ${passThreshold(questions.length)} out of ${questions.length} (80%) earns the brick.`}
           </p>
         </div>
         <div className="btnrow">
+          {onDrive && (
+            <button className="btn gold" onClick={onDrive}>🚗 Drive for 2 minutes!</button>
+          )}
           <button className="btn" onClick={() => { setI(0); setVal(undefined); setLocked(false); setHint(false); setScore(0); setFinished(false); reported.current = false; }}>
             Try again
           </button>
