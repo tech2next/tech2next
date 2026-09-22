@@ -185,6 +185,11 @@ const CSS = `
 /* stamp celebration */
 .stamp { text-align:center; padding:24px; }
 .stamp .big { font-size:76px; animation:pop .5s cubic-bezier(.2,1.5,.4,1); }
+.badgechip { display:inline-block; margin:2px auto 10px; padding:8px 16px; border-radius:999px;
+  background:var(--sunset-lt); color:#3A2A0C; font-weight:800; font-size:15px; }
+.progressbar { height:14px; border-radius:999px; background:var(--line); overflow:hidden; margin-top:10px; }
+.progressbar-fill { height:100%; background:var(--sunset); border-radius:999px; transition:width .4s ease; }
+.badgeshelf { display:flex; gap:14px; margin-top:8px; font-weight:800; font-size:16px; }
 @keyframes pop { from { transform:scale(.2) rotate(-25deg); opacity:0 } to { transform:none; opacity:1 } }
 @media (prefers-reduced-motion:reduce){ .stamp .big { animation:none } }
 
@@ -403,7 +408,8 @@ const GLOSSARY = {
   numerator: "The top number of a fraction. It tells how many parts you have.",
   denominator: "The bottom number of a fraction. It tells how many equal parts the whole was cut into.",
   "unit fraction": "A fraction with 1 on top, like 1/4. It is one single piece of the whole.",
-  "expanded form": "Writing a number as its pieces added together, like 300 + 40 + 2.",
+  "expanded form": "Writing a number as the VALUE of each digit added together, like 300 + 40 + 2. No multiplying shown.",
+  "expanded notation": "Writing each digit TIMES its place value, all added together, like (3 × 100) + (4 × 10) + (2 × 1).",
   "place value": "What a digit is worth because of where it sits in the number.",
   round: "Change a number to a nearby friendly number, like 10 or 100.",
   polygon: "A closed flat shape made only of straight sides.",
@@ -541,13 +547,13 @@ const CONCEPTS = [
     id: "placevalue", region: "num", icon: "🔢", teks: "3.2A, 3.2B",
     title: "Place value and expanded form",
     idea: "Every digit has a job. Its job depends on where it sits. In 4,706 the 7 isn't just 'seven' — it is 7 hundreds, worth 700.",
-    another: "Think of it like money. A 5 in the thousands spot is five $1,000 bills. The same 5 in the tens spot is five $10 bills. Same digit, very different pile.",
+    another: "Think of it like money. A 5 in the thousands spot is five $1,000 bills. The same 5 in the tens spot is five $10 bills. Same digit, very different pile. Expanded form just adds up the piles: 5,000 + 50.",
     example: "6,203 = 6,000 + 200 + 3   (there are no tens, so nothing to add)",
     qs: [
-      { type: "mc", prompt: "Which expression shows the [[expanded form]] of 92,060?",
-        options: ["(9 × 1,000) + (2 × 1,000) + (6 × 100)", "(9 × 10,000) + (2 × 100) + (6 × 10)", "(9 × 10,000) + (2 × 1,000) + (6 × 10)", "(9 × 1,000) + (2 × 100) + (6 × 10)"],
+      { type: "mc", prompt: "Which shows the [[expanded form]] of 92,060?",
+        options: ["9,000 + 2,000 + 600", "90,000 + 200 + 60", "90,000 + 2,000 + 60", "9,000 + 200 + 6"],
         a: 2, hint: "Say the number out loud: ninety-two thousand, sixty. What is the 9 really worth?",
-        exp: "9 sits in the ten thousands spot, so it is 9 × 10,000 = 90,000. The 2 is 2 × 1,000 = 2,000. The 6 is in the tens spot, 6 × 10 = 60. Nothing in hundreds or ones." },
+        exp: "The 9 is worth 90,000, the 2 is worth 2,000, and the 6 is worth 60. Expanded form just adds those values: 90,000 + 2,000 + 60. No multiplying shown — that's expanded notation, which is the next stop." },
       { type: "entry", prompt: "In the number 38,514, what is the value of the digit 8?",
         a: 8000, hint: "Count the spots from the right: ones, tens, hundreds, thousands.",
         exp: "The 8 is in the thousands place, so it is worth 8,000 — not 8." },
@@ -555,6 +561,35 @@ const CONCEPTS = [
         options: ["4,792", "40,792", "47,092", "40,079"],
         a: 1, hint: "Write a digit for every single spot, even the empty one.",
         exp: "4 ten thousands and 0 thousands means you must write the zero: 40,792. Skipping it would shrink the number by ten times." },
+    ],
+  },
+  {
+    id: "expnotation", region: "num", icon: "✖️", teks: "3.2A",
+    title: "Expanded notation",
+    idea: "[[expanded notation]] shows each digit TIMES its place value, then adds them. It is different from [[expanded form]], which only shows the values. 4,706 in expanded form is 4,000 + 700 + 6. In expanded notation it is (4 × 1,000) + (7 × 100) + (6 × 1).",
+    another: "Expanded form shows the money piles: 4,000 + 700 + 6. Expanded notation shows how you made each pile: four $1,000 bills is 4 × 1,000, seven $100 bills is 7 × 100. Same number, it just shows the multiplying.",
+    example: "6,203 in expanded form: 6,000 + 200 + 3.   In expanded notation: (6 × 1,000) + (2 × 100) + (3 × 1).",
+    qs: [
+      { type: "mc", prompt: "Which shows the [[expanded notation]] of 92,060?",
+        options: ["(9 × 1,000) + (2 × 1,000) + (6 × 100)", "(9 × 10,000) + (2 × 100) + (6 × 10)", "(9 × 10,000) + (2 × 1,000) + (6 × 10)", "90,000 + 2,000 + 60"],
+        a: 2, hint: "Expanded notation needs a × in every part. Which spot is the 9 in?",
+        exp: "The 9 is in the ten thousands spot (9 × 10,000), the 2 is in the thousands spot (2 × 1,000), and the 6 is in the tens spot (6 × 10). Choice D is the right number, but it's expanded FORM — no multiplying shown." },
+      { type: "mc", prompt: "Which one is written in expanded NOTATION?",
+        options: ["3,000 + 500 + 20 + 8", "(3 × 1,000) + (5 × 100) + (2 × 10) + (8 × 1)", "3,528", "three thousand, five hundred twenty-eight"],
+        a: 1, hint: "Look for the one that shows multiplying.",
+        exp: "Only choice B shows each digit times its place value. Choice A is expanded form, C is standard form, and D is word form. They're all the same number, written four different ways." },
+      { type: "entry", prompt: "What number is (4 × 1,000) + (7 × 100) + (5 × 1)?",
+        a: 4705, hint: "Find each part's value, then add. Is there any tens part?",
+        exp: "4,000 + 700 + 5 = 4,705. There is no tens part, so the tens spot gets a 0." },
+      { type: "place", prompt: "Finish the expanded notation for 63,480. Drag the right place value to each digit.",
+        tiles: ["× 10,000", "× 1,000", "× 100", "× 10"],
+        slots: [{ lab: "6", a: "× 10,000" }, { lab: "3", a: "× 1,000" }, { lab: "4", a: "× 100" }, { lab: "8", a: "× 10" }],
+        hint: "Name the spots from the right: ones, tens, hundreds, thousands, ten thousands.",
+        exp: "63,480 = (6 × 10,000) + (3 × 1,000) + (4 × 100) + (8 × 10). The 0 is in the ones spot, so there's no ones part." },
+      { type: "mc", prompt: "What is the difference between expanded form and expanded notation?",
+        options: ["There is no difference", "Expanded notation shows each digit times its place value; expanded form only adds the values", "Expanded form uses multiplying; expanded notation uses subtracting", "Expanded notation only works for small numbers"],
+        a: 1, hint: "Think about which one has × signs.",
+        exp: "Both add up the pieces of a number. Expanded notation shows the multiplying, like (5 × 100). Expanded form shows just the value, like 500." },
     ],
   },
   {
@@ -947,7 +982,11 @@ const CONCEPTS = [
 const LESSONS = {
   placevalue: {
     goals: [["🔢", "Tell what each digit is really worth"], ["🧩", "Break a number into its pieces"], ["0️⃣", "Know why a zero still matters"]],
-    steps: ["Start at the right and name each spot: ones, tens, hundreds, thousands, ten thousands.", "Point at your digit and say the spot name out loud.", "Multiply the digit by that spot's value. The 7 in the hundreds spot is 7 × 100 = 700.", "For expanded form, do that for every digit and add them with plus signs. Skip a spot only if the digit is 0."],
+    steps: ["Start at the right and name each spot: ones, tens, hundreds, thousands, ten thousands.", "Point at your digit and say the spot name out loud.", "Multiply the digit by that spot's value. The 7 in the hundreds spot is 7 × 100 = 700.", "For expanded form, write each digit's VALUE and add them with plus signs: 4,000 + 700 + 6. Skip a spot if the digit is 0. (Showing the × is expanded notation — that's the next stop.)"],
+  },
+  expnotation: {
+    goals: [["✖️", "Write a number as digit × place value"], ["🔀", "Tell expanded notation apart from expanded form"], ["0️⃣", "Skip a place when the digit is 0"]],
+    steps: ["Name each spot from the right: ones, tens, hundreds, thousands, ten thousands.", "For each digit, write it TIMES its spot's value, like (7 × 100). Put each one in parentheses.", "Join them with plus signs. Leave out any spot where the digit is 0.", "Check: if the answer has no × signs, that's expanded form, not expanded notation."],
   },
   compare: {
     goals: [["⚖️", "Decide which number is bigger"], ["✍️", "Use the symbols the right way"], ["🎯", "Round to a friendly number"]],
@@ -1284,7 +1323,11 @@ const byId = (id) => CONCEPTS.find((c) => c.id === id);
 /* ============================================================
    STORAGE
    ============================================================ */
-const KEY = "texas-trail-progress-v1";
+/* The live site has always saved under "brickdash-progress-v1" in localStorage.
+   KEEP THIS KEY THE SAME in every future version, or saved progress will look lost.
+   Older keys are only read (never written) so any earlier progress is picked up. */
+const KEY = "brickdash-progress-v1";
+const OLD_KEYS = ["texas-trail-progress-v1"];
 const blank = {
   mastered: {}, seen: {}, best: {}, words: {}, speedMath: {},
   areas: {},        // per activity: { right, wrong }
@@ -1300,19 +1343,38 @@ function record(p, area, right, wrong) {
   n.areas = { ...(n.areas || {}), [area]: { right: prev.right + right, wrong: prev.wrong + wrong } };
   n.correct = (n.correct || 0) + right;
   n.attempts = (n.attempts || 0) + right + wrong;
+  n.sessions = (n.sessions || 0) + 1; // any completed task, anywhere — used to unlock car parts
   return n;
 }
 
 async function loadProgress() {
+  /* ask the browser not to clear our saved data when space runs low */
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch { /* ignore */ }
+  /* optional cloud copy (Microsoft Graph adapter), if one is set up */
   try {
-    const r = await window.storage.get(KEY);
-    return r ? { ...blank, ...JSON.parse(r.value) } : { ...blank };
+    if (window.BrickDashStore) {
+      const r = await window.BrickDashStore.load();
+      if (r) return { ...blank, ...r };
+    }
+  } catch (e) { console.warn("remote load failed, using local copy", e); }
+  try {
+    let raw = window.localStorage.getItem(KEY);
+    if (!raw) for (const k of OLD_KEYS) { raw = window.localStorage.getItem(k); if (raw) break; }
+    if (!raw && window.storage) {       /* Claude artifact preview storage */
+      for (const k of [KEY, ...OLD_KEYS]) {
+        try { const r = await window.storage.get(k); if (r && r.value) { raw = r.value; break; } } catch { /* not found */ }
+      }
+    }
+    return raw ? { ...blank, ...JSON.parse(raw) } : { ...blank };
   } catch {
     return { ...blank };
   }
 }
 async function saveProgress(p) {
-  try { await window.storage.set(KEY, JSON.stringify(p)); } catch { /* offline is fine */ }
+  const json = JSON.stringify(p);
+  try { window.localStorage.setItem(KEY, json); } catch (e) { console.warn("local save failed", e); }
+  try { if (window.storage) await window.storage.set(KEY, json); } catch { /* preview only */ }
+  try { if (window.BrickDashStore) await window.BrickDashStore.save(p); } catch (e) { console.warn("remote save failed; local copy kept", e); }
 }
 
 /* ============================================================
@@ -1796,6 +1858,7 @@ function WordForge({ level, progress, push, go }) {
       const prev = p.wordStats[w] || { right: 0, wrong: 0 };
       p.wordStats[w] = { right: prev.right + t.right, wrong: prev.wrong + t.wrong };
     });
+    p.badges = awardBadge(p, `spell_${level}`, Math.round((won.length / round.length) * 100));
     push(p);
   }, [done]); // eslint-disable-line
 
@@ -1829,7 +1892,39 @@ function WordForge({ level, progress, push, go }) {
     setFirstTry(true); setPlaced([]); setSentResult(null);
   };
 
+  /* physical keyboard support for spelling: type letters, alongside tapping tiles */
+  useEffect(() => {
+    if (step !== "build" || result) return;
+    function onKeyDown(e) {
+      if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+      const key = e.key.toLowerCase();
+      if (key === "enter") e.preventDefault();
+      if (key === "backspace") {
+        e.preventDefault();
+        setBuilt((b) => b.slice(0, -1));
+        return;
+      }
+      if (key === "enter") {
+        if (built.length === word.length) checkSpelling();
+        return;
+      }
+      if (/^[a-z']$/.test(key) && built.length < word.length) {
+        setBuilt((b) => {
+          if (b.length >= word.length) return b;
+          const takenKs = b.map((x) => x.k);
+          const idx = tiles.findIndex((t, k) => t.toLowerCase() === key && !takenKs.includes(k));
+          if (idx === -1) return b;
+          return [...b, { k: idx, t: tiles[idx] }];
+        });
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [step, result, built, word, tiles]);
+
   if (done) {
+    const pct = Math.round((won.length / round.length) * 100);
+    const badge = badgeTier(pct);
     return (
       <div className="stack">
         {won.length === round.length && showCheer && (
@@ -1838,7 +1933,8 @@ function WordForge({ level, progress, push, go }) {
         )}
         <div className="stamp card">
           <div className="big">{won.length === round.length ? "🔤" : "⚡"}</div>
-          <h1 style={{ fontSize: 30, margin: "8px 0" }}>{won.length} of {round.length} spelled first try</h1>
+          <h1 style={{ fontSize: 30, margin: "8px 0" }}>{won.length} of {round.length} spelled first try — {pct}%</h1>
+          <div className="badgechip">{badge.emoji} {badge.label} badge earned!</div>
           <p className="small" style={{ margin: "0 0 6px" }}>{rightN} right · {wrongN} wrong this round</p>
           <p className="lede" style={{ color: "#4A5764", margin: 0 }}>
             {won.length === round.length
@@ -2029,28 +2125,45 @@ const CAR_COLORS = [
 const attemptedIn = (p, rid) => conceptsIn(rid).filter((c) => p.seen && p.seen[c.id]).length;
 /* Passing score for any stop: 80% or higher (rounded up), so a 5-question stop needs 4 right. */
 const passThreshold = (total) => Math.max(1, Math.ceil(total * 0.8));
+/* Badges: every finished test earns one, tiered by score — never punishes trying. */
+const BADGE_RANK = { try: 0, bronze: 1, silver: 2, gold: 3 };
+function badgeTier(pct) {
+  if (pct >= 100) return { tier: "gold", emoji: "🥇", label: "Gold" };
+  if (pct >= 80) return { tier: "silver", emoji: "🥈", label: "Silver" };
+  if (pct >= 60) return { tier: "bronze", emoji: "🥉", label: "Bronze" };
+  return { tier: "try", emoji: "🎯", label: "Nice Try" };
+}
+function awardBadge(progress, key, pct) {
+  const badges = { ...(progress.badges || {}) };
+  const cur = badges[key];
+  const t = badgeTier(pct);
+  if (!cur || BADGE_RANK[t.tier] > BADGE_RANK[cur.tier]) {
+    badges[key] = { tier: t.tier, pct, ts: Date.now() };
+  }
+  return badges;
+}
 
 const GARAGE_PARTS = [
-  { id: "wheels", name: "Wheels", emoji: "🛞", zone: "Gear Works",
-    how: "Finish 2 stops in Gear Works — just finishing them earns it, any score counts",
-    need: (p) => attemptedIn(p, "ops") >= 2,
+  { id: "wheels", name: "Wheels", emoji: "🛞", zone: "Anywhere",
+    how: "Finish 1 task anywhere in the app — any score counts",
+    need: (p) => (p.sessions || 0) >= 1,
     choices: [["monster", "Monster tires"], ["moon", "Moon wheels"], ["classic", "Classic"]] },
-  { id: "paint", name: "Paint job", emoji: "🎨", zone: "Brick Yard",
-    how: "Finish 2 stops in Brick Yard — just finishing them earns it, any score counts",
-    need: (p) => attemptedIn(p, "num") >= 2 },
-  { id: "lights", name: "Headlights", emoji: "💡", zone: "Story Mode",
-    how: "Finish 2 stops in Story Mode — just finishing them earns it, any score counts",
-    need: (p) => attemptedIn(p, "read") >= 2 },
-  { id: "top", name: "Roof gear", emoji: "🪂", zone: "Build Deck",
-    how: "Finish 2 stops in Build Deck — just finishing them earns it, any score counts",
-    need: (p) => attemptedIn(p, "geo") >= 2,
+  { id: "paint", name: "Paint job", emoji: "🎨", zone: "Anywhere",
+    how: "Finish 2 tasks anywhere in the app — any score counts",
+    need: (p) => (p.sessions || 0) >= 2 },
+  { id: "lights", name: "Headlights", emoji: "💡", zone: "Anywhere",
+    how: "Finish 3 tasks anywhere in the app — any score counts",
+    need: (p) => (p.sessions || 0) >= 3 },
+  { id: "top", name: "Roof gear", emoji: "🪂", zone: "Anywhere",
+    how: "Finish 4 tasks anywhere in the app — any score counts",
+    need: (p) => (p.sessions || 0) >= 4,
     choices: [["spoiler", "Spoiler"], ["rack", "Roof rack"], ["sunroof", "Sunroof"]] },
-  { id: "dash", name: "Dashboard", emoji: "🎛", zone: "Score Tower",
-    how: "Finish a stop in Score Tower — just finishing it earns it, any score counts",
-    need: (p) => attemptedIn(p, "dat") >= 1 },
-  { id: "plate", name: "Name plate", emoji: "🔖", zone: "Repair Bay",
-    how: "Finish a stop in Repair Bay — just finishing it earns it, any score counts",
-    need: (p) => attemptedIn(p, "write") >= 1, names: true },
+  { id: "dash", name: "Dashboard", emoji: "🎛", zone: "Anywhere",
+    how: "Finish 5 tasks anywhere in the app — any score counts",
+    need: (p) => (p.sessions || 0) >= 5 },
+  { id: "plate", name: "Name plate", emoji: "🔖", zone: "Anywhere",
+    how: "Finish 6 tasks anywhere in the app — any score counts",
+    need: (p) => (p.sessions || 0) >= 6, names: true },
   { id: "horn", name: "Horn", emoji: "📣", zone: "Word Forge", goTo: { name: "spell", level: 3 },
     how: "Spell 12 sight words right", need: (p) => Object.keys(p.words || {}).length >= 12,
     choices: [["beep", "Beep beep"], ["trumpet", "Big trumpet"], ["moo", "Cow horn"]] },
@@ -2058,7 +2171,7 @@ const GARAGE_PARTS = [
     how: "Get 15 right in one Speed Math run",
     need: (p) => Math.max(p.speedMath?.sm1 || 0, p.speedMath?.sm2 || 0, p.speedMath?.sm3 || 0) >= 15 },
   { id: "flag", name: "Victory flag", emoji: "🚩", zone: "Everywhere",
-    how: "Collect all 19 bricks", need: (p) => Object.keys(p.mastered || {}).length >= CONCEPTS.length,
+    how: `Collect all ${CONCEPTS.length} bricks`, need: (p) => Object.keys(p.mastered || {}).length >= CONCEPTS.length,
     choices: [["star", "Star"], ["bolt", "Lightning"], ["check", "Checkers"]] },
 ];
 
@@ -2533,7 +2646,10 @@ function Garage({ progress, push, go }) {
   const np = nextPart(progress);
   const setCar = (patch) => push({ ...progress, car: { ...car, ...patch } });
   const setPick = (partId, val) => push({ ...progress, car: { ...car, picks: { ...(car.picks || {}), [partId]: val } } });
-  const canDrive = Object.keys(progress.seen || {}).length >= 1;
+  const canDrive = (progress.sessions || 0) >= 1;
+  const sessions = progress.sessions || 0;
+  const badgeCounts = { gold: 0, silver: 0, bronze: 0, try: 0 };
+  Object.values(progress.badges || {}).forEach((b) => { if (badgeCounts[b.tier] !== undefined) badgeCounts[b.tier]++; });
 
   return (
     <div className="stack">
@@ -2543,10 +2659,23 @@ function Garage({ progress, push, go }) {
           {earned.length} of {GARAGE_PARTS.length} parts on. Doing the work adds the parts — they never come off.
         </p>
         <p className="lede" style={{ color: "#4A5764", margin: "4px 0 0", fontSize: 15 }}>
-          💡 For most parts, just <b>finishing</b> a stop's questions unlocks it — your score doesn't matter for that.
-          Scoring <b>80% or higher</b> also earns a 🧱 brick, which is a separate thing (that's your mastery record on the map).
-          Finish just 1 stop anywhere and a "Take it for a real drive" button shows up here.
+          💡 For most parts, just <b>finishing</b> a task anywhere — a stop, Speed Math, spelling, a timed trek — unlocks
+          the next one, no matter the score. Scoring <b>80% or higher</b> on a stop also earns a 🧱 brick (that's the
+          separate mastery record on the map). Finish just 1 task and "Take it for a real drive" shows up here.
         </p>
+        <div className="progressbar" aria-hidden="true">
+          <div className="progressbar-fill" style={{ width: `${Math.min(100, (earned.length / GARAGE_PARTS.length) * 100)}%` }} />
+        </div>
+        <p className="small" style={{ margin: "4px 0 0" }}>
+          {sessions} task{sessions === 1 ? "" : "s"} finished so far
+          {np ? ` — keep going for your next part: ${np.emoji} ${np.name}` : " — every part is on!"}
+        </p>
+        <div className="badgeshelf">
+          <span>🥇 {badgeCounts.gold}</span>
+          <span>🥈 {badgeCounts.silver}</span>
+          <span>🥉 {badgeCounts.bronze}</span>
+          <span>🎯 {badgeCounts.try}</span>
+        </div>
       </div>
 
       <div className="stage">
@@ -2700,6 +2829,8 @@ function SpeedMath({ progress, push, go }) {
     let p = record(progress, "Speed Math", score, misses.length);
     const prev = p.speedMath?.[bestKey] || 0;
     if (score > prev && score > 0) { p.speedMath = { ...(p.speedMath || {}), [bestKey]: score }; setBeat(true); }
+    const total = score + misses.length;
+    p.badges = awardBadge(p, `speedmath_${bestKey}`, total > 0 ? Math.round((score / total) * 100) : 100);
     push(p);
   }, [phase]); // eslint-disable-line
 
@@ -2729,6 +2860,29 @@ function SpeedMath({ progress, push, go }) {
       setP(makeProblem(level, ops));
     }, right ? 350 : 1400);
   };
+
+  /* physical keyboard support during play, alongside the tap pad */
+  useEffect(() => {
+    if (phase !== "play") return;
+    function onKeyDown(e) {
+      if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+      if (flash) return;
+      if (e.key === "Enter") e.preventDefault();
+      if (/^[0-9]$/.test(e.key)) {
+        e.preventDefault();
+        setInput((v) => (v.length < 6 ? v + e.key : v));
+      } else if (e.key === "Backspace") {
+        e.preventDefault();
+        setInput((v) => v.slice(0, -1));
+      } else if (e.key === "Delete" || e.key === "Escape") {
+        setInput("");
+      } else if (e.key === "Enter") {
+        submit();
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [phase, flash, input, p, level, ops]);
 
   const toggleOp = (o) =>
     setOps((cur) => (cur.includes(o) ? (cur.length > 1 ? cur.filter((x) => x !== o) : cur) : [...cur, o]));
@@ -2788,6 +2942,9 @@ function SpeedMath({ progress, push, go }) {
 
   /* ---- results ---- */
   if (phase === "over") {
+    const total = score + misses.length;
+    const pct = total > 0 ? Math.round((score / total) * 100) : 100;
+    const badge = badgeTier(pct);
     return (
       <div className="stack">
         {beat && showCheer && (
@@ -2796,7 +2953,8 @@ function SpeedMath({ progress, push, go }) {
         )}
         <div className="stamp card">
           <div className="big">⚡</div>
-          <h1 style={{ fontSize: 32, margin: "8px 0" }}>{score} right, {misses.length} wrong</h1>
+          <h1 style={{ fontSize: 32, margin: "8px 0" }}>{score} right, {misses.length} wrong — {pct}%</h1>
+          <div className="badgechip">{badge.emoji} {badge.label} badge earned!</div>
           <p className="lede" style={{ color: "#4A5764", margin: 0 }}>
             Best streak in a row: {bestStreak}. {score > (progress.speedMath?.[bestKey] || 0) ? "That's a new record." : ""}
           </p>
@@ -2852,7 +3010,31 @@ function SpeedMath({ progress, push, go }) {
 }
 
 /* ---------------- collection: stats + every brick ---------------- */
+/* Sprint (worksheet drill) records live in their own storage key so the main
+   progress save never overwrites them. The 🏁 Sprint panel writes them. */
+const SPRINT_KEY = "brickdash-sprints-v1";
+function loadSprintRecords() {
+  try { return JSON.parse(window.localStorage.getItem(SPRINT_KEY) || "{}") || {}; } catch { return {}; }
+}
+function saveSprintRecords(s) {
+  try { window.localStorage.setItem(SPRINT_KEY, JSON.stringify(s)); } catch { /* ignore */ }
+}
+const fmtClock = (sec) => { const s = Math.max(0, Math.round(sec)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
+const sprintLabel = (r) => `${r.op === "×" ? "Multiply by" : r.op === "−" ? "Subtract with" : "Add by"} ${r.n} · ${r.count} problems`;
+
 function Collection({ progress, push, go }) {
+  const [sprints, setSprints] = useState(() => loadSprintRecords());
+  useEffect(() => {
+    const refresh = () => setSprints(loadSprintRecords());
+    window.addEventListener("brickdash-sprints-updated", refresh);
+    window.addEventListener("storage", refresh);
+    return () => {
+      window.removeEventListener("brickdash-sprints-updated", refresh);
+      window.removeEventListener("storage", refresh);
+    };
+  }, []);
+  const sprintRows = Object.values(sprints).filter((r) => r && typeof r.bestSec === "number").sort((a, b) => a.bestSec - b.bestSec);
+  const fastestSprint = sprintRows[0];
   const [confirmReset, setConfirmReset] = useState(false);
   const [msg, setMsg] = useState("");
   const fileRef = useRef(null);
@@ -2862,7 +3044,7 @@ function Collection({ progress, push, go }) {
 
   const exportBackup = () => {
     try {
-      const blob = new Blob([JSON.stringify(progress, null, 2)], { type: "application/json" });
+      const blob = new Blob([JSON.stringify({ ...progress, sprintRecords: loadSprintRecords() }, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -2881,7 +3063,9 @@ function Collection({ progress, push, go }) {
       try {
         const d = JSON.parse(String(r.result));
         if (typeof d !== "object" || d === null) throw new Error("bad shape");
-        push({ ...blank, ...d });
+        const { sprintRecords, ...rest } = d;
+        if (sprintRecords && typeof sprintRecords === "object") { saveSprintRecords(sprintRecords); setSprints(sprintRecords); }
+        push({ ...blank, ...rest });
         setMsg("Progress restored from backup.");
       } catch { setMsg("That file couldn't be read as a Brick Dash backup."); }
     };
@@ -2905,6 +3089,7 @@ function Collection({ progress, push, go }) {
         <div className="stat"><b>{progress.correct || 0}</b><span>questions right</span></div>
         <div className="stat"><b>{acc}%</b><span>correct overall</span></div>
         <div className="stat"><b>{progress.bestTimed || 0}</b><span>best Speed Run</span></div>
+        <div className="stat"><b>{fastestSprint ? fmtClock(fastestSprint.bestSec) : "—"}</b><span>best Sprint time</span></div>
         <div className="stat"><b>{Object.keys(progress.seen || {}).length}</b><span>stops tried</span></div>
         <div className="stat"><b>{Object.keys(progress.words || {}).length}</b><span>sight words spelled</span></div>
       </div>
@@ -2931,6 +3116,25 @@ function Collection({ progress, push, go }) {
           <span>{progress.attempts ? Math.round(((progress.correct || 0) / progress.attempts) * 100) + "%" : "—"}</span>
         </div>
       </div>
+
+      <h3 style={{ margin: "16px 0 0", fontSize: 21 }}>🏁 Sprint best times</h3>
+      {sprintRows.length ? (
+        <div className="table">
+          <div className="tr th"><span>Sprint</span><span>Best time</span><span>Right</span><span>Under 2:00?</span></div>
+          {sprintRows.map((r) => (
+            <div className="tr" key={`${r.op}_${r.n}_${r.count}`}>
+              <span>{sprintLabel(r)}</span>
+              <span><b>{fmtClock(r.bestSec)}</b></span>
+              <span className="g">{r.bestCorrect ?? "—"}/{r.count}</span>
+              <span>{r.bestSec <= 120 ? "✅ Yes" : "Not yet"}</span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="small" style={{ margin: 0 }}>
+          No sprint times yet. Tap 🏁 Sprint in the corner. Finish every problem with 80% or more right to set a best time.
+        </p>
+      )}
 
       <h3 style={{ margin: "16px 0 0", fontSize: 21 }}>Every stop</h3>
       {REGIONS.map((r) => {
@@ -3003,7 +3207,7 @@ function Collection({ progress, push, go }) {
         {confirmReset ? (
           <div className="btnrow">
             <button className="btn" style={{ background: "var(--clay)", boxShadow: "0 4px 0 #9E2519" }}
-              onClick={() => { push({ ...blank }); setConfirmReset(false); go({ name: "map" }); }}>
+              onClick={() => { push({ ...blank }); saveSprintRecords({}); setSprints({}); setConfirmReset(false); go({ name: "map" }); }}>
               Yes, erase everything
             </button>
             <button className="btn ghost" onClick={() => setConfirmReset(false)}>Keep my bricks</button>
@@ -3165,6 +3369,7 @@ function ConceptView({ cid, progress, push, go, onWord }) {
         const st = (p.stop && p.stop[c.id]) || { right: 0, wrong: 0, runs: 0 };
         p.stop = { ...(p.stop || {}), [c.id]: { right: st.right + score, wrong: st.wrong + wrong, runs: st.runs + 1 } };
         if (score >= passThreshold(c.qs.length)) p.mastered = { ...p.mastered, [c.id]: true };
+        p.badges = awardBadge(p, c.id, Math.round((score / c.qs.length) * 100));
         push(p);
       }}
       goBack={() => go({ name: "region", rid: c.region })}
@@ -3208,22 +3413,66 @@ function Practice({ concept, questions, onWord, onDone, goBack, reteach, timed, 
     }
   }, [finished, score, onDone, questions.length]);
 
+  /* Physical keyboard support, alongside the touch/tap controls — types digits for
+     number-entry questions, letter/number keys pick a multiple-choice option,
+     Enter checks the answer or moves to the next question. */
+  useEffect(() => {
+    function onKeyDown(e) {
+      if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+      if (finished) return;
+      if (e.key === "Enter") e.preventDefault(); // stop a focused button from also firing a click
+      if (locked) {
+        if (e.key === "Enter") next();
+        return;
+      }
+      if (q.type === "entry") {
+        if (/^[0-9]$/.test(e.key)) {
+          e.preventDefault();
+          setVal((v) => (String(v ?? "").length < 6 ? String(v ?? "") + e.key : v));
+        } else if (e.key === "Backspace") {
+          e.preventDefault();
+          setVal((v) => String(v ?? "").slice(0, -1));
+        } else if (e.key === "Delete" || e.key === "Escape") {
+          setVal("");
+        } else if (e.key === "Enter" && isAnswered(q, val)) {
+          check();
+        }
+      } else if (q.type === "mc") {
+        const letterIdx = "abcde".indexOf(e.key.toLowerCase());
+        const numIdx = "12345".indexOf(e.key);
+        const pick = letterIdx !== -1 ? letterIdx : numIdx;
+        if (pick !== -1 && q.options && pick < q.options.length) {
+          setVal([pick]);
+        } else if (e.key === "Enter" && isAnswered(q, val)) {
+          check();
+        }
+      } else if (e.key === "Enter" && isAnswered(q, val)) {
+        check();
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [q, val, locked, finished]);
+
   if (finished) {
     const perfect = score === questions.length;
+    const pct = Math.round((score / questions.length) * 100);
+    const badge = badgeTier(pct);
     return (
       <div className="stack">
         {cheer && (
           <Cheer
             emoji={perfect ? "🧱" : null}
-            sub={`${concept ? concept.title : "Stop"} — ${score} out of ${questions.length}. Brick collected!`}
+            sub={`${concept ? concept.title : "Stop"} — ${score} out of ${questions.length} (${pct}%). Brick collected!`}
             onClose={() => setCheer(false)}
           />
         )}
         <div className="stamp card">
           <div className="big">{perfect ? "🧱" : score > questions.length / 2 ? "⚡" : "🔧"}</div>
           <h1 style={{ fontSize: 30, margin: "8px 0" }}>
-            {perfect ? "Stop cleared!" : `${score} out of ${questions.length}`}
+            {perfect ? "Stop cleared!" : `${score} out of ${questions.length} — ${pct}%`}
           </h1>
+          <div className="badgechip">{badge.emoji} {badge.label} badge earned!</div>
           <p className="lede" style={{ color: "#4A5764", margin: 0 }}>
             {perfect
               ? "Every single one. Brick collected."
