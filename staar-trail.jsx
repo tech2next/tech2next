@@ -69,11 +69,8 @@ const CSS = `
   border-radius:22px; padding:18px; cursor:pointer; display:block; width:100%;
   border-left:10px solid var(--rc); position:relative; overflow:hidden;
   box-shadow:0 4px 0 var(--line); }
-.region::after { content:""; position:absolute; top:14px; right:14px; width:58px; height:16px;
-  background-image:radial-gradient(circle at 9px 8px, var(--rc) 6px, transparent 6px),
-                   radial-gradient(circle at 29px 8px, var(--rc) 6px, transparent 6px),
-                   radial-gradient(circle at 49px 8px, var(--rc) 6px, transparent 6px);
-  opacity:.35; }
+.region::after { content:""; position:absolute; top:14px; right:14px; width:48px; height:16px;
+  background:conic-gradient(var(--rc) 25%, transparent 0 50%, var(--rc) 0 75%, transparent 0) 0 0/8px 8px; opacity:.35; }
 .region:active { transform:translateY(3px); box-shadow:0 1px 0 var(--line); }
 .region h3 { font-size:22px; margin:0 0 4px; }
 .region .meta { font-size:14px; color:var(--soft); font-weight:600; }
@@ -293,15 +290,15 @@ const CSS = `
 .stat span { font-size:14px; font-weight:700; color:var(--soft); }
 .shelf { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 @media (min-width:560px){ .shelf { grid-template-columns:repeat(3,1fr); } }
-.brick { text-align:left; background:var(--paper); border:2px solid var(--line);
+.trophy { text-align:left; background:var(--paper); border:2px solid var(--line);
   border-radius:16px; padding:14px; cursor:pointer; box-shadow:0 4px 0 var(--line);
   font-family:var(--ui); color:var(--ink); display:block; }
-.brick:active { transform:translateY(3px); box-shadow:0 1px 0 var(--line); }
-.brick.got { border-color:var(--rc); background:linear-gradient(0deg, rgba(245,197,24,.14), rgba(245,197,24,.14)), var(--paper); }
-.brick .bi { font-size:28px; display:block; filter:grayscale(1); opacity:.45; }
-.brick.got .bi { filter:none; opacity:1; }
-.brick .bt { display:block; font-weight:800; font-size:15px; line-height:1.3; margin:4px 0 2px; }
-.brick .bs { display:block; font-size:12px; font-weight:700; color:var(--soft); }
+.trophy:active { transform:translateY(3px); box-shadow:0 1px 0 var(--line); }
+.trophy.got { border-color:var(--rc); background:linear-gradient(0deg, rgba(245,197,24,.14), rgba(245,197,24,.14)), var(--paper); }
+.trophy .bi { font-size:28px; display:block; filter:grayscale(1); opacity:.45; }
+.trophy.got .bi { filter:none; opacity:1; }
+.trophy .bt { display:block; font-weight:800; font-size:15px; line-height:1.3; margin:4px 0 2px; }
+.trophy .bs { display:block; font-size:12px; font-weight:700; color:var(--soft); }
 
 .grid2 { display:grid; gap:12px; }
 @media (min-width:560px){ .grid2 { grid-template-columns:1fr 1fr; } }
@@ -416,7 +413,7 @@ const CSS = `
 .lr-zfoot { display:flex; align-items:center; gap:10px; padding:12px 14px 14px; }
 .lr-ztext { flex:1; min-width:0; display:flex; flex-direction:column; gap:6px; }
 .lr-ztag { font-size:18px; font-weight:800; line-height:1.25; }
-.lr-zbricks { display:flex; align-items:center; gap:8px; font-size:14px; font-weight:700; color:#4A5764; }
+.lr-ztrophies { display:flex; align-items:center; gap:8px; font-size:14px; font-weight:700; color:#4A5764; }
 .lr-zbar { flex:0 0 64px; height:8px; background:#E1E8F2; border-radius:999px; overflow:hidden; }
 .lr-zbar i { display:block; height:100%; background:var(--rc); }
 .lr-zgo { flex:none; width:46px; height:46px; border-radius:50%; background:var(--rc); color:var(--rcfg);
@@ -707,6 +704,122 @@ const CSS = `
 .steps li:active { background:var(--bluebonnet-lt); }
 .steps .sn { flex:none; width:34px; height:34px; border-radius:11px; background:var(--bluebonnet);
   color:#fff; display:grid; place-items:center; font-family:var(--ui); font-size:18px; }
+/* ===== Figure-8 race ===== */
+.rc-pick { position:absolute; inset:0; z-index:5; background:linear-gradient(180deg, rgba(79,147,230,.94), rgba(233,239,250,.97));
+  display:flex; align-items:flex-start; justify-content:center; overflow:auto; padding:18px 14px 30px; }
+.rc-pickin { max-width:820px; width:100%; }
+.rc-pickin h2 { font-family:var(--display); font-size:clamp(24px,3.4vw,32px); margin:6px 0 14px; color:#fff; text-shadow:0 2px 0 rgba(15,31,61,.35); }
+.rc-cards { display:grid; gap:14px; }
+@media (min-width:700px){ .rc-cards { grid-template-columns:1.35fr 1fr; } }
+.rc-card { background:var(--paper); border:3px solid var(--ink); border-radius:22px; padding:18px; box-shadow:0 6px 0 rgba(15,31,61,.35);
+  display:flex; flex-direction:column; }
+.rc-card.race { border-color:var(--ink); background:linear-gradient(180deg,#FFF8D6,#fff 45%); }
+.rc-card h3 { font-family:var(--display); font-size:24px; margin:6px 0 4px; }
+.rc-card p { margin:0 0 10px; font-size:16px; line-height:1.5; }
+.rc-card .btn { margin-top:auto; }
+.rc-cardmap { width:100%; max-width:320px; height:auto; display:block; margin:0 auto 4px; }
+.rc-cardart { font-size:64px; text-align:center; line-height:1.4; }
+.rc-levels { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+.rc-lv { font-family:var(--ui); border:2px solid var(--line); background:var(--paper); border-radius:14px; padding:9px 6px;
+  cursor:pointer; color:var(--ink); box-shadow:0 3px 0 var(--line); }
+.rc-lv b { display:block; font-size:16px; }
+.rc-lv span { display:block; font-size:12px; color:var(--soft); font-weight:700; }
+.rc-lv.on { border-color:var(--bluebonnet); background:var(--bluebonnet-lt); box-shadow:0 3px 0 var(--bluebonnet); }
+.rc-lv:focus-visible, .ty-toggle:focus-within { outline:3px solid var(--sunset); outline-offset:2px; }
+.rc-keys { color:#0F1F3D; text-align:center; margin-top:14px; font-weight:700; }
+.rc-hud { position:absolute; top:12px; left:12px; background:rgba(255,255,255,.94); border:3px solid var(--ink);
+  border-radius:18px; padding:8px 14px; font-family:var(--ui); min-width:200px; max-width:62vw; }
+.rc-row { display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
+.rc-place { font-size:30px; font-weight:800; line-height:1; color:var(--clay); }
+.rc-place small { font-size:14px; color:var(--soft); }
+.rc-lap { font-size:18px; font-weight:800; }
+.rc-row.small2 { font-size:15px; font-weight:700; margin-top:4px; font-variant-numeric:tabular-nums; }
+.rc-tip { display:block; font-size:12px; color:var(--soft); font-weight:700; margin-top:4px; }
+@media (max-width:520px){ .rc-tip { display:none; } }
+.rc-map { position:absolute; top:12px; right:12px; width:min(34vw,210px); height:auto; background:rgba(106,168,74,.85);
+  border:3px solid var(--ink); border-radius:16px; padding:4px; }
+.rc-count { position:absolute; left:50%; top:38%; transform:translate(-50%,-50%); font-family:var(--display); font-weight:800;
+  font-size:clamp(90px,18vw,180px); color:#FFD21F; -webkit-text-stroke:6px #0F1F3D; paint-order:stroke fill; pointer-events:none;
+  animation:rcPop .9s ease-out both; }
+.rc-count.go { color:#3DDC84; }
+@keyframes rcPop { 0% { transform:translate(-50%,-50%) scale(1.6); opacity:0; } 25% { opacity:1; transform:translate(-50%,-50%) scale(1); } 100% { opacity:.9; } }
+.rc-wrong, .rc-boost { position:absolute; left:50%; top:22%; transform:translateX(-50%); font-family:var(--ui); font-weight:800;
+  font-size:22px; padding:10px 18px; border-radius:999px; border:3px solid var(--ink); pointer-events:none; white-space:nowrap; }
+.rc-wrong { background:var(--clay); color:#fff; }
+.rc-boost { background:#FFD21F; color:var(--ink); top:30%; }
+.rc-result { position:absolute; inset:0; z-index:6; background:rgba(15,31,61,.55); display:flex; align-items:center; justify-content:center; padding:16px; }
+.rc-resultin { background:var(--paper); border:3px solid var(--ink); border-radius:24px; padding:22px; max-width:520px; width:100%; text-align:center;
+  box-shadow:0 8px 0 rgba(15,31,61,.4); }
+.rc-resultin h2 { font-family:var(--display); font-size:32px; margin:4px 0; }
+.rc-trophy { font-size:78px; line-height:1.1; animation:pop .5s cubic-bezier(.2,1.5,.4,1); }
+@media (prefers-reduced-motion: reduce){ .rc-count, .rc-trophy, .ty-ch.cur.bad { animation:none !important; } }
+
+/* ===== Typing Speedway ===== */
+.lr-mcard.wide { grid-column:1 / -1; }
+.lr-mtype svg { width:92px; height:auto; }
+.ty-hero { display:flex; gap:16px; align-items:center; }
+.ty-heroicon svg { width:96px; height:auto; display:block; }
+@media (max-width:480px){ .ty-heroicon svg { width:64px; } }
+.ty-tip { background:var(--sunset-lt); border-color:#EBCB92; }
+.ty-tip b { font-family:var(--ui); font-size:18px; }
+.ty-tip p { margin:6px 0 0; font-size:16.5px; line-height:1.55; }
+kbd { font-family:var(--ui); font-weight:800; display:inline-block; min-width:1.7em; text-align:center; padding:1px 6px;
+  border:2px solid var(--ink); border-bottom-width:4px; border-radius:7px; background:#fff; font-size:.95em; }
+.ty-best { color:var(--juniper) !important; font-weight:800; margin-top:2px; }
+.ty-toggle { display:flex; gap:14px; align-items:center; background:var(--paper); border:2px solid var(--line); border-radius:18px;
+  padding:14px 16px; cursor:pointer; }
+.ty-toggle input { position:absolute; opacity:0; width:1px; height:1px; }
+.ty-toggle b { font-family:var(--ui); font-size:18px; display:block; }
+.ty-toggle.on { border-color:var(--bluebonnet); background:var(--bluebonnet-lt); }
+.ty-switch { flex:none; width:54px; height:32px; border-radius:99px; background:#C9D3E3; border:2px solid var(--ink); position:relative; transition:background .2s; }
+.ty-switch i { position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:#fff; border:2px solid var(--ink); transition:left .2s; }
+.ty-toggle.on .ty-switch { background:var(--juniper); }
+.ty-toggle.on .ty-switch i { left:25px; }
+.ty-road { position:relative; height:64px; border-radius:16px; background:#44484f; border:3px solid var(--ink); overflow:hidden; }
+.ty-lane { position:absolute; left:0; right:0; top:50%; border-top:3px dashed rgba(255,255,255,.55); }
+.ty-flag { position:absolute; right:0; top:0; bottom:0; width:26px;
+  background:conic-gradient(#111 25%, #fff 0 50%, #111 0 75%, #fff 0) 0 0/13px 13px; }
+.ty-car { position:absolute; top:8px; width:84px; transition:left .25s ease-out; }
+.ty-car svg { width:100%; display:block; }
+.ty-bar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.ty-board { position:relative; background:var(--paper); border:3px solid var(--ink); border-radius:22px; padding:22px 20px 16px; cursor:text;
+  box-shadow:0 5px 0 rgba(15,31,61,.15); }
+.ty-board.done { border-color:var(--juniper); background:var(--juniper-lt); }
+.ty-line { margin:0; font-family:var(--read); font-size:clamp(28px,4.6vw,42px); line-height:1.5; letter-spacing:.02em; word-break:break-word; }
+.ty-ch { border-radius:6px; padding:0 1px; }
+.ty-ch.ok { color:var(--juniper); }
+.ty-ch.todo { color:#8391A8; }
+.ty-ch.cur { background:var(--sunset); color:var(--ink); box-shadow:inset 0 -4px 0 var(--ink); }
+.ty-ch.cur.bad { background:var(--clay); color:#fff; animation:tyShake .35s; }
+.ty-ch.sp.cur { color:rgba(15,31,61,.55); }
+@keyframes tyShake { 0%,100% { transform:translateX(0); } 25% { transform:translateX(-4px); } 75% { transform:translateX(4px); } }
+.ty-help { margin:12px 0 0; font-family:var(--ui); font-weight:700; font-size:17px; color:var(--soft); min-height:1.5em; }
+.ty-input { position:absolute; left:0; bottom:0; width:100%; height:100%; opacity:0; font-size:16px; border:none; background:transparent;
+  color:transparent; caret-color:transparent; cursor:text; }
+.ty-refocus { position:absolute; inset:0; margin:auto; width:max-content; height:max-content; font-family:var(--ui); font-weight:800;
+  font-size:18px; padding:12px 20px; border-radius:999px; border:3px solid var(--ink); background:var(--sunset); cursor:pointer; }
+.ty-kb { background:#DDE4EF; border:2px solid var(--line); border-radius:18px; padding:10px; display:flex; flex-direction:column; gap:6px;
+  user-select:none; }
+.ty-kbrow { display:flex; gap:5px; justify-content:center; }
+.ty-kbrow.r1 { padding-left:2%; } .ty-kbrow.r2 { padding-left:0; }
+.ty-key { flex:0 1 44px; min-width:0; height:40px; display:grid; place-items:center; border-radius:8px; font-family:var(--ui);
+  font-weight:800; font-size:15px; color:var(--ink); border:2px solid rgba(15,31,61,.25); border-bottom-width:4px; background:#fff; position:relative; }
+.ty-key.wide { flex:0 1 74px; font-size:12px; background:#F1F4F9; }
+.ty-key.space { flex:0 1 300px; font-size:13px; }
+.ty-key.bump::after { content:""; position:absolute; bottom:5px; width:12px; height:3px; border-radius:2px; background:var(--ink); opacity:.5; }
+.ty-key.on { border-color:var(--ink); transform:translateY(-2px); box-shadow:0 0 0 3px var(--sunset); background:var(--sunset) !important; }
+.f-lp { background:#FDE2E0; } .f-lr { background:#FFEBD2; } .f-lm { background:#FFF6C4; } .f-li { background:#DAF3E6; }
+.f-ri { background:#DAF3E6; } .f-rm { background:#FFF6C4; } .f-rr { background:#FFEBD2; } .f-rp { background:#FDE2E0; } .f-th { background:#EDEFF3; }
+.ty-legend { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
+.ty-legend span { font-size:13px; font-weight:800; padding:4px 10px; border-radius:999px; border:2px solid rgba(15,31,61,.2); }
+@media (max-width:520px){ .ty-key { height:34px; font-size:13px; } .ty-kbrow { gap:3px; } .ty-kb { padding:6px; } }
+.ty-results { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-top:6px; }
+.ty-results div { background:var(--caliche); border:2px solid var(--line); border-radius:16px; padding:10px 16px; min-width:110px; }
+.ty-results b { display:block; font-family:var(--ui); font-size:28px; color:var(--bluebonnet); line-height:1.1; }
+.ty-results b.r { color:var(--clay); }
+.ty-results span { font-size:13px; font-weight:700; color:var(--soft); }
+.ty-chip { display:inline-flex; gap:8px; align-items:center; }
+
 `;
 
 /* ============================================================
@@ -814,14 +927,14 @@ function RichText({ text, onWord }) {
    PASSAGES
    ============================================================ */
 const PASSAGES = {
-  brick: {
-    title: "The Last Gold Brick",
+  goldcar: {
+    title: "The Last Gold Car",
     body: [
-      "There was exactly one gold brick left in the whole set, and Milo had been saving it for the top of his tower. It had been his plan since Tuesday.",
+      "There was exactly one gold race car left in the whole set, and Milo had been saving it for the first race on his new track. It had been his plan since Tuesday.",
       "But Saturday morning, his little sister Rosa was already standing under the high shelf. Her hand was stretched up. Her fingers wiggled. She could not quite reach the bin.",
-      "Milo opened his mouth. Then he looked at her face, at how hard she was trying, at how she had sorted every loose piece into the right tray each morning without being asked.",
+      "Milo opened his mouth. Then he looked at her face, at how hard she was trying, at how she had sorted every loose track piece into the right tray each morning without being asked.",
       "He walked over, lifted her up by the waist, and said nothing at all.",
-      "Rosa pulled out the gold brick. She turned it over twice, then held it out to him. \"We build it together,\" she said. Their grandpa, watching from the doorway, smiled into his coffee.",
+      "Rosa pulled out the gold car. She turned it over twice, then held it out to him. \"We race it together,\" she said. Their grandpa, watching from the doorway, smiled into his coffee.",
     ],
   },
   speed: {
@@ -849,7 +962,7 @@ const PASSAGES = {
    ============================================================ */
 const REGIONS = [
   /* `id` is saved in progress — never change it. `name`, `tag` and `art` are display only. */
-  { id: "num", name: "Build Yard", sub: "Numbers & Fractions", subject: "Math", rc: "#1B62E8", icon: "🧱",
+  { id: "num", name: "Build Yard", sub: "Numbers & Fractions", subject: "Math", rc: "#1B62E8", icon: "🔢",
     tag: "Practice numbers & fractions", art: "build_yard" },
   { id: "ops", name: "Gear Works", sub: "Adding, Multiplying, Dividing", subject: "Math", rc: "#12A05A", icon: "⚙️",
     tag: "Practice adding, multiplying & dividing", art: "gear_works" },
@@ -984,7 +1097,7 @@ const CONCEPTS = [
     another: "'3 times as many' means take the amount and stack it three times. If a shop sold 15 small sets and 3 × 15 large ones, the LARGE pile is the big one.",
     example: "6 apples in each of 7 bags → 7 × 6 = 42 apples.",
     qs: [
-      { type: "mc", prompt: "A shop sold 15 small brick sets. Large sets sold = 3 × 15. Which statement is true?",
+      { type: "mc", prompt: "A shop sold 15 small race car sets. Large sets sold = 3 × 15. Which statement is true?",
         options: ["Large is 15 times the number of small.", "Small is 15 times the number of large.", "Large is 3 times the number of small.", "Small is 3 times the number of large."],
         a: 2, hint: "The 3 is doing the multiplying. Which pile grew?",
         exp: "3 × 15 means three groups of 15, so there are 3 times as many large sets as small ones. Watch the word order carefully — the test swaps it on purpose." },
@@ -1191,18 +1304,18 @@ const CONCEPTS = [
     idea: "An [[inference]] is text clues PLUS what you already know. The author doesn't say it straight out, but the story shows it.",
     another: "After you pick an answer, go back and find the exact sentence that proves it. If you cannot point at a line, your answer is probably a guess.",
     example: "The story never says Milo was generous. It says he lifted his sister up and said nothing. You infer it from what he did.",
-    passage: "brick",
+    passage: "goldcar",
     qs: [
       { type: "mc", prompt: "Why does Milo say nothing at all when he lifts Rosa up?",
         options: ["He is too angry to speak.", "He has decided to give up his plan without making a fuss.", "He does not know her name.", "He is afraid of his grandpa."],
         a: 1, hint: "Look at what he noticed right before he moved.",
-        exp: "He looked at how hard she was trying and how she had sorted the pieces every morning. He changes his mind and gives up the brick quietly. The text never says angry or afraid." },
+        exp: "He looked at how hard she was trying and how she had sorted the pieces every morning. He changes his mind and gives up the gold car quietly. The text never says angry or afraid." },
       { type: "mc", prompt: "What is the [[theme]] of this story?",
-        options: ["Gold bricks are the best pieces.", "Big brothers make unfair rules.", "Sometimes giving something up brings you something better.", "Building towers is hard work."],
-        a: 2, hint: "[[Theme]] is the lesson, not the topic. The topic is a brick. What's the lesson?",
-        exp: "Milo gives up his plan, and Rosa offers to build together anyway. The lesson is about generosity coming back around. 'Gold bricks' and 'building' are topics, not lessons." },
+        options: ["Gold cars are the fastest cars.", "Big brothers make unfair rules.", "Sometimes giving something up brings you something better.", "Building race tracks is hard work."],
+        a: 2, hint: "[[Theme]] is the lesson, not the topic. The topic is a toy car. What's the lesson?",
+        exp: "Milo gives up his plan, and Rosa offers to race together anyway. The lesson is about generosity coming back around. 'Gold cars' and 'racing' are topics, not lessons." },
       { type: "mc", prompt: "Which sentence is the best [[evidence]] that Rosa worked hard for the set?",
-        options: ["\"Her hand was stretched up.\"", "\"she had sorted every loose piece into the right tray each morning without being asked\"", "\"Rosa pulled out the gold brick.\"", "\"Their grandpa, watching from the doorway, smiled into his coffee.\""],
+        options: ["\"Her hand was stretched up.\"", "\"she had sorted every loose piece into the right tray each morning without being asked\"", "\"Rosa pulled out the gold car.\"", "\"Their grandpa, watching from the doorway, smiled into his coffee.\""],
         a: 1, hint: "Which line actually mentions work she did?",
         exp: "Only that line describes effort over time. The others describe a single moment." },
     ],
@@ -1359,7 +1472,7 @@ const LESSONS = {
     steps: ["Sort coins biggest to smallest: quarters, dimes, nickels, pennies.", "Count on from the biggest pile instead of starting over.", "For word problems, ask which one it is: earning, spending, saving, or borrowing.", "Remember: you EARN interest when you save, and you PAY interest when you borrow."],
   },
   vocab: {
-    goals: [["🔤", "Figure out a word you've never seen"], ["🧱", "Use word parts to unlock meaning"], ["👯", "Spot homophones and synonyms"]],
+    goals: [["🔤", "Figure out a word you've never seen"], ["🧩", "Use word parts to unlock meaning"], ["👯", "Spot homophones and synonyms"]],
     steps: ["Read the whole sentence, then the sentence before and after it.", "Look for a clue: a definition, an example, or an opposite nearby.", "Check the word for parts. Chop off any prefix or suffix and look at what's left.", "Put your guess back into the sentence. Does it still make sense?"],
   },
   infer: {
@@ -1473,10 +1586,10 @@ const EXTRA_QS = {
       hint: "Antonyms are opposites, not near-matches.", exp: "Ancient means very old and modern means new, so they're opposites. The other three pairs are all [[synonym]]s." },
   ],
   infer: [
-    { type: "mc", prompt: "What can you infer about the grandpa at the end?", options: ["He is upset the tower was ruined.", "He is pleased with how the children handled it.", "He did not notice what happened.", "He wanted the gold brick himself."], a: 1,
+    { type: "mc", prompt: "What can you infer about the grandpa at the end?", options: ["He is upset the track was ruined.", "He is pleased with how the children handled it.", "He did not notice what happened.", "He wanted the gold car himself."], a: 1,
       hint: "What does someone's smile usually mean?", exp: "He smiles into his coffee while watching. Smiling shows approval, so he's pleased — even though the text never says so directly." },
-    { type: "mc", prompt: "What is the [[conflict]] in this story?", options: ["Rosa cannot reach the bin and Milo had already claimed the gold brick.", "The grandpa runs out of coffee.", "The tower falls over.", "Milo forgets to sort the pieces."], a: 0,
-      hint: "The conflict is the problem the character has to face.", exp: "The problem is that two people both have a claim on one gold brick. Everything else in the story flows from that." },
+    { type: "mc", prompt: "What is the [[conflict]] in this story?", options: ["Rosa cannot reach the bin and Milo had already claimed the gold car.", "The grandpa runs out of coffee.", "The race track falls apart.", "Milo forgets to sort the pieces."], a: 0,
+      hint: "The conflict is the problem the character has to face.", exp: "The problem is that two people both have a claim on one gold car. Everything else in the story flows from that." },
   ],
   infotext: [
     { type: "mc", prompt: "Which detail from 'Built for Speed' supports the idea that speed has a cost?", options: ["A falcon can reach two hundred miles per hour.", "A cheetah can only run flat out for about thirty seconds before overheating.", "The sailfish has a long pointed bill.", "A cheetah reaches full speed in three seconds."], a: 1,
@@ -1516,23 +1629,23 @@ CONCEPTS.forEach((c) => { if (EXTRA_QS[c.id]) c.qs = c.qs.concat(EXTRA_QS[c.id])
 const SIGHT_WORDS = {
   1: [
     ["after", "We eat dessert ___ dinner."], ["again", "Can you say that ___, please?"],
-    ["an", "She ate ___ apple at lunch."], ["any", "Do you have ___ red bricks left?"],
+    ["an", "She ate ___ apple at lunch."], ["any", "Do you have ___ red cars left?"],
     ["as", "The cheetah is ___ fast lightning."], ["ask", "You can ___ me for help."],
     ["by", "The bag is right ___ the door."], ["could", "I ___ hear the music from here."],
     ["every", "She reads ___ single night."], ["fly", "Watch the falcon ___ over the hill."],
     ["from", "This letter came ___ my grandma."], ["give", "Please ___ the ball to Rosa."],
     ["going", "We are ___ to the park today."], ["had", "He ___ two cookies at lunch."],
-    ["has", "She ___ a new blue bike."], ["her", "I gave ___ the last gold brick."],
+    ["has", "She ___ a new blue bike."], ["her", "I gave ___ the last gold car."],
     ["him", "Milo asked ___ to wait outside."], ["his", "That red helmet is ___."],
     ["how", "Show me ___ you built the tower."], ["just", "I ___ finished my homework."],
     ["know", "Do you ___ the answer yet?"], ["let", "Please ___ the dog come inside."],
-    ["live", "We ___ near the school."], ["may", "You ___ pick one more brick."],
+    ["live", "We ___ near the school."], ["may", "You ___ pick one more car."],
     ["of", "I drank a glass ___ milk."], ["old", "That is a very ___ tree."],
     ["once", "We went there ___ last summer."], ["open", "Please ___ the window a little."],
     ["over", "The ball flew ___ the fence."], ["put", "___ your shoes by the door."],
     ["round", "The wheel is ___ and smooth."], ["some", "I saved ___ pieces for you."],
     ["stop", "The car will ___ at the light."], ["take", "___ your jacket with you."],
-    ["thank", "I want to ___ you for helping."], ["them", "Give the bricks to ___."],
+    ["thank", "I want to ___ you for helping."], ["them", "Give the car keys to ___."],
     ["then", "First we build, ___ we clean up."], ["think", "I ___ this answer is right."],
     ["walk", "We ___ to school every morning."], ["were", "They ___ playing in the yard."],
     ["when", "Tell me ___ you are ready."],
@@ -1545,16 +1658,16 @@ const SIGHT_WORDS = {
     ["call", "Please ___ me when you get home."], ["cold", "The water feels very ___ today."],
     ["does", "___ your brother like to build?"], ["don't", "I ___ know where it went."],
     ["fast", "That race car is really ___."], ["first", "She was the ___ one in line."],
-    ["five", "I have ___ gold bricks left."], ["found", "He ___ his lost helmet."],
+    ["five", "I have ___ laps left."], ["found", "He ___ his lost helmet."],
     ["gave", "She ___ me half her sandwich."], ["goes", "This piece ___ on the top."],
     ["green", "The grass is bright ___."], ["its", "The dog wagged ___ tail."],
-    ["made", "We ___ a tower out of bricks."], ["many", "How ___ pieces do you need?"],
+    ["made", "We ___ a race track in the yard."], ["many", "How ___ pieces do you need?"],
     ["off", "Please turn ___ the lights."], ["or", "Do you want milk ___ juice?"],
     ["pull", "___ the door open slowly."], ["read", "I like to ___ before bed."],
     ["right", "You got that answer ___."], ["sing", "We ___ that song every Friday."],
     ["sit", "Please ___ next to me."], ["sleep", "I ___ better with the fan on."],
     ["tell", "Can you ___ me a story?"], ["their", "The kids finished ___ project."],
-    ["these", "___ bricks are the small ones."], ["those", "Hand me ___ pieces over there."],
+    ["these", "___ cars are the fast ones."], ["those", "Hand me ___ pieces over there."],
     ["upon", "Once ___ a time, there was a hero."], ["us", "Come with ___ to the park."],
     ["use", "You can ___ my markers."], ["very", "That was a ___ good idea."],
     ["wash", "Please ___ your hands now."], ["which", "___ one do you want?"],
@@ -1572,7 +1685,7 @@ const SIGHT_WORDS = {
     ["full", "My cup is almost ___."], ["got", "She ___ every answer right."],
     ["grow", "These plants ___ very fast."], ["hold", "Can you ___ this for a second?"],
     ["hot", "The soup is too ___ to eat."], ["hurt", "I ___ my knee on the sidewalk."],
-    ["if", "Tell me ___ you need help."], ["keep", "You can ___ that brick."],
+    ["if", "Tell me ___ you need help."], ["keep", "You can ___ that trophy."],
     ["kind", "She is ___ to everyone."], ["laugh", "That joke made me ___."],
     ["light", "Please turn on the ___."], ["long", "That was a very ___ movie."],
     ["much", "How ___ does this cost?"], ["myself", "I built this all by ___."],
@@ -1580,7 +1693,7 @@ const SIGHT_WORDS = {
     ["own", "This is my ___ tower."], ["pick", "___ any color you like."],
     ["seven", "I counted ___ wheels."], ["shall", "___ we start building now?"],
     ["show", "Please ___ me your work."], ["six", "The box holds ___ pieces."],
-    ["small", "That is a very ___ brick."], ["start", "Let us ___ over again."],
+    ["small", "That is a very ___ car."], ["start", "Let us ___ over again."],
     ["ten", "I can count to ___."], ["today", "We have build club ___."],
     ["together", "We finished the tower ___."], ["try", "Please ___ one more time."],
     ["warm", "The sun feels ___ today."],
@@ -1592,7 +1705,7 @@ const SIGHT_WORDS = {
     ["wrote", "She ___ her name on the paper."], ["later", "We can finish this ___."],
     ["near", "The park is ___ my house."], ["remember", "I ___ that story from last year."],
     ["news", "We watched the ___ after dinner."], ["green", "Her jacket is dark ___."],
-    ["anyone", "Does ___ know the answer?"], ["love", "I ___ building with bricks."],
+    ["anyone", "Does ___ know the answer?"], ["love", "I ___ racing my car."],
     ["dog", "Our ___ barks at the mail truck."], ["move", "Please ___ your bag off the seat."],
     ["mind", "I changed my ___ about it."], ["table", "Put the plates on the ___."],
     ["across", "We walked ___ the bridge."], ["case", "In that ___, let us try again."],
@@ -1876,7 +1989,7 @@ function isAnswered(q, v) {
 /* ============================================================
    APP
    ============================================================ */
-export default function BrickDash() {
+export default function LearnAndRace() {
   const [view, setView] = useState({ name: "map" });
   const [progress, setProgress] = useState(blank);
   const [word, setWord] = useState(null);
@@ -1910,7 +2023,7 @@ export default function BrickDash() {
           ✗ {Math.max(0, (progress.attempts || 0) - (progress.correct || 0))}
         </button>
         <button className="pill gold tap" onClick={() => setView({ name: "collection" })}>
-          🧱 {mastered}/{totalConcepts}
+          🏆 {mastered}/{totalConcepts}
         </button>
         {view.name === "timed" && <TimerPill />}
       </div>
@@ -1925,6 +2038,7 @@ export default function BrickDash() {
         {loaded && view.name === "collection" && <Collection progress={progress} push={push} go={setView} />}
         {loaded && view.name === "garage" && <Garage progress={progress} push={push} go={setView} />}
         {loaded && view.name === "mathdrill" && <SpeedMath progress={progress} push={push} go={setView} />}
+        {loaded && view.name === "typing" && <TypingGame progress={progress} push={push} go={setView} />}
         {loaded && view.name === "spell" && <WordForge key={String(view.level) + view.k} level={view.level} progress={progress} push={push} go={setView} />}
         {loaded && view.name === "region" && <RegionView rid={view.rid} progress={progress} go={setView} />}
         {loaded && view.name === "concept" && (
@@ -2085,8 +2199,8 @@ function PartIcon({ id, name }) {
         <rect x="9" y="11" width="78" height="26" rx="4" fill="none" stroke="#1B62E8" strokeWidth="2.5" />
         <circle cx="11" cy="24" r="2.2" fill={INK} /><circle cx="85" cy="24" r="2.2" fill={INK} />
         <text x="48" y="31" textAnchor="middle" fontFamily="'Trebuchet MS','Segoe UI','Nunito',system-ui,sans-serif" fontWeight="800"
-          fontSize="17" fill={INK} textLength={Math.min(62, 9 * String(name || "BRICK").length)} lengthAdjust="spacingAndGlyphs">
-          {String(name || "BRICK").toUpperCase().slice(0, 8)}
+          fontSize="17" fill={INK} textLength={Math.min(62, 9 * String(name || "RACER").length)} lengthAdjust="spacingAndGlyphs">
+          {String(name || "RACER").toUpperCase().slice(0, 8)}
         </text>
       </svg>
     );
@@ -2146,7 +2260,7 @@ function RaceHelp({ onClose }) {
           </li>
           <li>
             <span className="lr-hnum" aria-hidden="true">2</span>
-            <div><b>Finish the activity</b><p>Any score moves your car forward. Score 80%+ to earn a brick too!</p></div>
+            <div><b>Finish the activity</b><p>Any score moves your car forward. Score 80%+ to earn a trophy too!</p></div>
           </li>
           <li>
             <span className="lr-hnum" aria-hidden="true">3</span>
@@ -2270,9 +2384,9 @@ function TrailMap({ progress, go }) {
                 <span className="lr-zfoot">
                   <span className="lr-ztext">
                     <span className="lr-ztag">{r.tag}</span>
-                    <span className="lr-zbricks">
+                    <span className="lr-ztrophies">
                       <span className="lr-zbar" aria-hidden="true"><i style={{ width: `${(done / cs.length) * 100}%` }} /></span>
-                      {done} of {cs.length} bricks
+                      {done} of {cs.length} trophies
                     </span>
                   </span>
                   <span className="lr-zgo" aria-hidden="true">›</span>
@@ -2340,6 +2454,22 @@ function TrailMap({ progress, go }) {
               <p className="small">Your best times show in Your collection.</p>
               <div className="btnrow">
                 <button className="btn" onClick={openSprint}>Open Sprint</button>
+              </div>
+            </div>
+          </div>
+
+          <div className="lr-mcard wide" style={{ "--mc": "#FFF6CF" }}>
+            <span className="lr-mart lr-mtype" aria-hidden="true"><TypeIcon /></span>
+            <div className="lr-mbody">
+              <h3>Typing Speedway</h3>
+              <p>Learn to type! Drive your car to the finish by typing each sentence.</p>
+              <p className="small">{(() => {
+                const ty = progress.typing || {};
+                const b = ["hard", "moderate", "easy"].find((k) => ty[k] && ty[k].runs);
+                return b ? `Best on ${TYPE_LEVELS.find((l) => l.id === b).name}: ${ty[b].bestAcc}% accurate${ty[b].bestWpm ? ` · ${ty[b].bestWpm} WPM` : ""}` : "Easy, Moderate and Hard levels · optional words-per-minute clock";
+              })()}</p>
+              <div className="btnrow">
+                <button className="btn" onClick={() => go({ name: "typing" })}>⌨️ Start typing</button>
               </div>
             </div>
           </div>
@@ -2721,7 +2851,7 @@ function WordForge({ level, progress, push, go }) {
 
 /* ============================================================
    THE GARAGE
-   Doing the work builds the car. Mastering the skill earns the brick.
+   Doing the work builds the car. Mastering the skill earns the trophy.
    Parts unlock from stops attempted, so a hard stop still moves the build.
    Parts are never taken away once earned.
    ============================================================ */
@@ -2782,8 +2912,8 @@ const GARAGE_PARTS = [
     short: "Get 15 right in one Speed Math run",
     goal: (p) => ({ have: Math.max(p.speedMath?.sm1 || 0, p.speedMath?.sm2 || 0, p.speedMath?.sm3 || 0), need: 15 }) },
   { id: "flag", name: "Victory flag", emoji: "🚩", zone: "Everywhere",
-    how: `Collect all ${CONCEPTS.length} bricks`, need: (p) => Object.keys(p.mastered || {}).length >= CONCEPTS.length,
-    short: `Collect all ${CONCEPTS.length} bricks (80%+ on every stop)`, goal: (p) => ({ have: Object.keys(p.mastered || {}).length, need: CONCEPTS.length }),
+    how: `Win all ${CONCEPTS.length} trophies`, need: (p) => Object.keys(p.mastered || {}).length >= CONCEPTS.length,
+    short: `Win all ${CONCEPTS.length} trophies (80%+ on every stop)`, goal: (p) => ({ have: Object.keys(p.mastered || {}).length, need: CONCEPTS.length }),
     choices: [["star", "Star"], ["bolt", "Lightning"], ["check", "Checkers"]] },
 ];
 
@@ -2794,7 +2924,7 @@ const nextPart = (p) => GARAGE_PARTS.find((x) => !x.need(p));
 /* ---------------- the 3D car (shared by the drive and the Garage showroom) ----------------
    have: which parts are earned. ghost: draw parts that aren't earned yet as see-through
    blue "blueprint" pieces, so the Garage can show what is still to come. */
-function buildCarModel({ have, picks = {}, bodyColor = "#1B62E8", name = "BRICK", HIGH = true, hasEnv = false, srgb = (tex) => tex, ghost = false }) {
+function buildCarModel({ have, picks = {}, bodyColor = "#1B62E8", name = "RACER", HIGH = true, hasEnv = false, srgb = (tex) => tex, ghost = false }) {
   const std = (opts) => new THREE.MeshStandardMaterial(opts);
   const ghostMat = new THREE.MeshBasicMaterial({ color: 0x4fa3ff, transparent: true, opacity: 0.55, depthWrite: false,
     blending: THREE.AdditiveBlending });           // glowing blueprint look
@@ -3083,17 +3213,108 @@ function buildCarModel({ have, picks = {}, bodyColor = "#1B62E8", name = "BRICK"
   return { carGroup, wheels, flame, flagMesh };
 }
 
-const GFX_KEY = "brickdash-gfx-v1";   // remembers High / Fast graphics on this device
+const GFX_KEY = "brickdash-gfx-v1";   // remembers High / Fast graphics on this device (key name must not change)
+
+/* ---------------- Figure-8 race course ----------------
+   One shared description of the course, used by the 3D scene and the mini-map.
+   The centre line is a figure eight (x = A·sin t, z = B·sin 2t), resampled so the
+   points are evenly spaced. Cars track their progress in "samples" along it. */
+const RACE_LAPS = 2;
+const TRACK_W = 13;                     // road width
+const RACE_LEVELS = [
+  { id: "rookie", name: "Rookie", note: "Relaxed racers", mult: 0.84 },
+  { id: "pro", name: "Pro", note: "A real race", mult: 0.99 },
+  { id: "champ", name: "Champion", note: "Fast and tough", mult: 1.11 },
+];
+const RIVALS = [
+  { name: "ZOOM", color: "#D8362A", css: "#D8362A", base: 0.405, lane: -3.2, slot: 0 },
+  { name: "DASH", color: "#12A05A", css: "#12A05A", base: 0.388, lane: 3.2, slot: 1 },
+  { name: "BLAZE", color: "#EE7B1B", css: "#EE7B1B", base: 0.37, lane: -3.2, slot: 2 },
+];
+const placeWord = (n) => (n === 1 ? "1st" : n === 2 ? "2nd" : n === 3 ? "3rd" : `${n}th`);
+const fmtRace = (sec) => {
+  const s = Math.max(0, sec);
+  return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}.${Math.floor((s % 1) * 10)}`;
+};
+
+let FIG8 = null;
+function figure8() {
+  if (FIG8) return FIG8;
+  const A = 86, B = 48, T0 = -0.32, D = 6000;
+  const rx = [], rz = [], cum = [0];
+  for (let i = 0; i <= D; i++) {
+    const t = T0 + (i / D) * Math.PI * 2;
+    rx.push(A * Math.sin(t)); rz.push(B * Math.sin(2 * t));
+    if (i) cum.push(cum[i - 1] + Math.hypot(rx[i] - rx[i - 1], rz[i] - rz[i - 1]));
+  }
+  const len = cum[D];
+  const N = Math.round(len / 0.6);
+  const x = new Float32Array(N), z = new Float32Array(N);
+  let j = 0;
+  for (let i = 0; i < N; i++) {
+    const target = (i / N) * len;
+    while (j < D - 1 && cum[j + 1] < target) j++;
+    const f = (target - cum[j]) / ((cum[j + 1] - cum[j]) || 1);
+    x[i] = rx[j] + (rx[j + 1] - rx[j]) * f;
+    z[i] = rz[j] + (rz[j + 1] - rz[j]) * f;
+  }
+  const tx = new Float32Array(N), tz = new Float32Array(N), curv = new Float32Array(N);
+  for (let i = 0; i < N; i++) {
+    const a = (i + 1) % N, b = (i - 1 + N) % N;
+    const dx = x[a] - x[b], dz = z[a] - z[b], l = Math.hypot(dx, dz) || 1;
+    tx[i] = dx / l; tz[i] = dz / l;
+  }
+  const step = len / N;
+  for (let i = 0; i < N; i++) {
+    const a = (i + 4) % N, b = (i - 4 + N) % N;
+    let d = Math.atan2(tx[a], tz[a]) - Math.atan2(tx[b], tz[b]);
+    while (d > Math.PI) d -= Math.PI * 2;
+    while (d < -Math.PI) d += Math.PI * 2;
+    curv[i] = Math.abs(d) / (8 * step);
+  }
+  /* mini-map path, scaled into a 200 x 120 box */
+  let path = "";
+  for (let i = 0; i < N; i += 6) path += `${i ? "L" : "M"}${(100 + x[i] * 1.05).toFixed(1)} ${(60 + z[i] * 1.05).toFixed(1)} `;
+  FIG8 = { N, len, step, x, z, tx, tz, curv, path: path + "Z" };
+  return FIG8;
+}
+const mapX = (x) => 100 + x * 1.05, mapZ = (z) => 60 + z * 1.05;
+
+/* nearest centre-line sample; where the road crosses itself, prefer the branch the car was already on */
+function nearestOnTrack(T, px, pz, hint) {
+  let best = Infinity;
+  for (let i = 0; i < T.N; i++) {
+    const dx = T.x[i] - px, dz = T.z[i] - pz, d = dx * dx + dz * dz;
+    if (d < best) best = d;
+  }
+  const lim = (Math.sqrt(best) + 2.5) ** 2;
+  let bi = hint, bd = Infinity, bdist = best;
+  for (let i = 0; i < T.N; i++) {
+    const dx = T.x[i] - px, dz = T.z[i] - pz, d = dx * dx + dz * dz;
+    if (d > lim) continue;
+    let dd = Math.abs(i - hint); dd = Math.min(dd, T.N - dd);
+    if (dd < bd) { bd = dd; bi = i; bdist = d; }
+  }
+  return { i: bi, dist: Math.sqrt(bdist) };
+}
 
 function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
   const mountRef = useRef(null);
+  const [mode, setMode] = useState(null);             // null = choosing | "free" | "race"
+  const [level, setLevel] = useState(() => (progress.raceLevel && RACE_LEVELS.some((l) => l.id === progress.raceLevel) ? progress.raceLevel : "rookie"));
+  const [runKey, setRunKey] = useState(0);            // bump to restart the race
   const [secsLeft, setSecsLeft] = useState(timeLimitSec || null);
   const [coins, setCoins] = useState(0);
   const [stars, setStars] = useState(0);
   const [challenge, setChallenge] = useState(null);   // { q, title, key }
   const [ans, setAns] = useState(undefined);
   const [locked, setLocked] = useState(false);
+  const [race, setRace] = useState(null);             // { phase, count, lap, place, wrong, boost }
+  const [result, setResult] = useState(null);         // { place, time, best, newBest }
   const pausedRef = useRef(false);                     // true while a question is open
+  const boostRef = useRef(0);                          // turbo boost frames left (race)
+  const clockRef = useRef(null);                       // race clock text, updated from the 3D loop
+  const dotRefs = useRef([]);                          // mini-map dots
   const [quality, setQuality] = useState(() => {
     try { return window.localStorage.getItem(GFX_KEY) || "high"; } catch { return "high"; }
   });
@@ -3123,6 +3344,7 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
   progressRef.current = progress;
   const onExitRef = useRef(onExit);
   onExitRef.current = onExit;
+  const TIMED = !!timeLimitSec && mode === "free";     // the lesson reward clock only applies in the Coin Arena
 
   /* leaving the drive: remember the best coin run, then exit */
   const finish = () => {
@@ -3134,15 +3356,24 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
   finishRef.current = finish;
 
   useEffect(() => {
-    if (!timeLimitSec) return;
+    if (!TIMED) return;
     const id = setInterval(() => {
       setSecsLeft((s) => (pausedRef.current || s <= 0 ? s : s - 1));   // clock stops during a question
     }, 1000);
     return () => clearInterval(id);
-  }, [timeLimitSec]);
+  }, [TIMED]);
   useEffect(() => {
-    if (timeLimitSec && secsLeft === 0) finishRef.current();
-  }, [secsLeft, timeLimitSec]);
+    if (TIMED && secsLeft === 0) finishRef.current();
+  }, [secsLeft, TIMED]);
+
+  const startMode = (m) => {
+    coinsRef.current = 0; setCoins(0); setStars(0);
+    setResult(null); setRace(null); setChallenge(null);
+    pausedRef.current = false; boostRef.current = 0; raceDoneRef.current = false;
+    if (m === "race" && push && progressRef.current.raceLevel !== level) push({ ...progressRef.current, raceLevel: level });
+    setMode(m);
+    setRunKey((k) => k + 1);
+  };
 
   /* random question from any stop (reading-passage questions skipped — too long mid-drive) */
   const pickQuestion = () => {
@@ -3167,13 +3398,37 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
       setChallenge(pickQuestion());
     }
   };
+  /* called from the 3D loop when something on the race HUD changes */
+  const onRaceRef = useRef(null);
+  const raceDoneRef = useRef(false);
+  onRaceRef.current = (r) => {
+    if (r.phase === "done" && !raceDoneRef.current) {
+      raceDoneRef.current = true;
+      const p = progressRef.current;
+      const prev = (p.raceBest || {})[level];
+      const newBest = !prev || r.time < prev.time;
+      const best = newBest ? { time: r.time, place: r.place } : prev;
+      if (push) {
+        push({
+          ...p,
+          races: (p.races || 0) + 1,
+          raceWins: (p.raceWins || 0) + (r.place === 1 ? 1 : 0),
+          raceBest: { ...(p.raceBest || {}), [level]: newBest ? { time: Math.round(r.time * 10) / 10, place: r.place, ts: Date.now() } : prev },
+          driveBestCoins: Math.max(p.driveBestCoins || 0, coinsRef.current),
+        });
+      }
+      setResult({ place: r.place, time: r.time, best: best.time, newBest: newBest && !!prev });
+    }
+    setRace(r);
+  };
   const checkChallenge = () => {
     if (!challenge || locked || !isAnswered(challenge.q, ans)) return;
     const ok = isCorrect(challenge.q, ans);
     setLocked(true);
     if (ok) {
       setStars((n) => n + 1);
-      if (timeLimitSec) setSecsLeft((n) => n + 15);
+      if (TIMED) setSecsLeft((n) => n + 15);
+      if (mode === "race") boostRef.current = 240;     // about 4 seconds of turbo
     }
     if (push) {
       const p = progressRef.current;
@@ -3213,6 +3468,8 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
   }, [challenge, ans, locked]);
 
   useEffect(() => {
+    if (!mode) return undefined;
+    const RACE = mode === "race";
     const mount = mountRef.current;
     let width = mount.clientWidth, height = mount.clientHeight;
 
@@ -3220,7 +3477,7 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
     GARAGE_PARTS.forEach((x) => { have[x.id] = x.need(progress); });
     const picks = car.picks || {};
     const bodyColor = car.color || "#1B62E8";
-    const name = (car.name || "BRICK").toUpperCase().slice(0, 8);
+    const name = (car.name || "RACER").toUpperCase().slice(0, 8);
     const RADIUS = 55;
 
     const HIGH = quality === "high";
@@ -3244,7 +3501,7 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
     const skyTex = srgb(new THREE.CanvasTexture(skyC));
     skyTex.mapping = THREE.EquirectangularReflectionMapping;
     scene.background = skyTex;
-    scene.fog = new THREE.Fog(0xdcecf8, 75, 200);
+    scene.fog = new THREE.Fog(0xdcecf8, RACE ? 90 : 75, RACE ? 230 : 200);
 
     const camera = new THREE.PerspectiveCamera(58, width / height, 0.1, 500);
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
@@ -3304,88 +3561,18 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
       return tex;
     }
     const grassTex = noiseTexture(512, "#6aa84a", ["#5c9a3e", "#78b856", "#86c360", "#548c37", "#6fae4d"], HIGH ? 9000 : 4000, 36);
-    const ground = new THREE.Mesh(new THREE.PlaneGeometry(400, 400),
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(RACE ? 500 : 400, RACE ? 500 : 400),
       std({ map: grassTex, roughness: 1, envMapIntensity: 0.25 }));
     ground.rotation.x = -Math.PI / 2;
     ground.receiveShadow = true;
     scene.add(ground);
 
-    /* a ring-shaped race track with red-and-white curbs and a dashed centre line */
-    const TRACK_IN = 30, TRACK_OUT = 40, TRACK_MID = 35;
-    const asphaltTex = noiseTexture(256, "#44484f", ["#3a3e45", "#4f535a", "#575b62", "#3f434a"], HIGH ? 5000 : 2000, 14);
-    const track = new THREE.Mesh(new THREE.RingGeometry(TRACK_IN, TRACK_OUT, HIGH ? 180 : 96, 1),
-      std({ map: asphaltTex, roughness: 0.92, envMapIntensity: 0.3 }));
-    track.rotation.x = -Math.PI / 2;
-    track.position.y = 0.02;
-    track.receiveShadow = true;
-    scene.add(track);
-
     const dummy = new THREE.Object3D();
-    function ringInstances(geo, mat, count, radius, y, colorFn) {
-      const inst = new THREE.InstancedMesh(geo, mat, count);
-      for (let i = 0; i < count; i++) {
-        const ang = (i / count) * Math.PI * 2;
-        dummy.position.set(Math.cos(ang) * radius, y, Math.sin(ang) * radius);
-        dummy.rotation.set(0, -ang, 0);
-        dummy.scale.set(1, 1, 1);
-        dummy.updateMatrix();
-        inst.setMatrixAt(i, dummy.matrix);
-        if (colorFn) inst.setColorAt(i, colorFn(i));
-      }
-      inst.receiveShadow = true;
-      scene.add(inst);
-      return inst;
-    }
+    const asphaltTex = noiseTexture(256, "#44484f", ["#3a3e45", "#4f535a", "#575b62", "#3f434a"], HIGH ? 5000 : 2000, 14);
     const curbRed = new THREE.Color(0xd8362a), curbWhite = new THREE.Color(0xf6f6f2);
-    const curbN = HIGH ? 120 : 72;
-    [TRACK_IN, TRACK_OUT].forEach((r) => {
-      ringInstances(new THREE.BoxGeometry(0.9, 0.14, ((2 * Math.PI * r) / curbN) * 0.97),
-        std({ roughness: 0.6 }), curbN, r, 0.07, (i) => (i % 2 ? curbWhite : curbRed));
-    });
-    ringInstances(new THREE.BoxGeometry(0.3, 0.03, 1.8), std({ color: 0xf2efe4, roughness: 0.7 }), 56, TRACK_MID, 0.04);
+    const T = RACE ? figure8() : null;
 
-    /* bluebonnet patches in the grass, a nod to Texas */
-    const bbN = HIGH ? 900 : 300;
-    const bonnets = new THREE.InstancedMesh(new THREE.ConeGeometry(0.13, 0.5, 6), std({ roughness: 0.7 }), bbN);
-    const blues = [0x3f55d1, 0x4a63e0, 0x5a4fcf, 0x3b4cb8].map((c) => new THREE.Color(c));
-    const cream = new THREE.Color(0xf4f1e6);
-    for (let i = 0; i < bbN; i++) {
-      const clump = Math.floor(i / 12);
-      const inner = clump % 2 === 0;
-      const cr = inner ? 6 + ((clump * 7.3) % 20) : 42 + ((clump * 5.1) % 10);
-      const ang = ((clump * 2.399) % (Math.PI * 2)) + (Math.random() - 0.5) * 0.12;
-      const r = cr + (Math.random() - 0.5) * 2.2;
-      const s = 0.7 + Math.random() * 0.6;
-      dummy.position.set(Math.cos(ang) * r, 0.25 * s, Math.sin(ang) * r);
-      dummy.rotation.set(0, 0, 0);
-      dummy.scale.set(s, s, s);
-      dummy.updateMatrix();
-      bonnets.setMatrixAt(i, dummy.matrix);
-      bonnets.setColorAt(i, i % 9 === 0 ? cream : blues[i % blues.length]);
-    }
-    scene.add(bonnets);
-
-    /* traffic cones around the edge of the arena */
-    const coneMat = std({ color: 0xf07a1a, roughness: 0.55 });
-    const stripeMat = std({ color: 0xffffff, roughness: 0.5 });
-    const coneBaseMat = std({ color: 0x2b2f36, roughness: 0.8 });
-    const coneGeo = new THREE.ConeGeometry(0.55, 1.5, HIGH ? 24 : 12);
-    const stripeGeo = new THREE.CylinderGeometry(0.215, 0.297, 0.22, HIGH ? 24 : 12);
-    const coneBaseGeo = new THREE.BoxGeometry(1.2, 0.12, 1.2);
-    for (let i = 0; i < 32; i++) {
-      const ang = (i / 32) * Math.PI * 2;
-      const g = new THREE.Group();
-      const cBody = new THREE.Mesh(coneGeo, coneMat); cBody.position.y = 0.87;
-      const stripe = new THREE.Mesh(stripeGeo, stripeMat); stripe.position.y = 0.95;
-      const base = new THREE.Mesh(coneBaseGeo, coneBaseMat); base.position.y = 0.06;
-      g.add(cBody, stripe, base);
-      g.position.set(Math.cos(ang) * RADIUS, 0, Math.sin(ang) * RADIUS);
-      g.rotation.y = ang;
-      g.traverse((o) => { o.castShadow = HIGH; });
-      scene.add(g);
-    }
-
-    /* trees: rounded leafy ones and pines */
+    /* trees: rounded leafy ones and pines (both courses) */
     const trunkMat = std({ color: 0x7a5132, roughness: 0.9 });
     const leafMats = [0x3f8f3f, 0x4f9a3a, 0x2f7d45, 0x5aa447].map((c) => std({ color: c, roughness: 0.85 }));
     const trunkGeo = new THREE.CylinderGeometry(0.28, 0.4, 2.6, HIGH ? 12 : 8);
@@ -3412,19 +3599,328 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
       g.traverse((o) => { o.castShadow = HIGH; });
       return g;
     }
-    const treeN = HIGH ? 30 : 14;
-    for (let i = 0; i < treeN; i++) {
-      const ang = (i / treeN) * Math.PI * 2 + Math.random() * 0.2;
-      const r = 64 + Math.random() * 30;
-      scene.add(makeTree(Math.cos(ang) * r, Math.sin(ang) * r, i));
+    const bluebonnetMesh = (n) => {
+      const m = new THREE.InstancedMesh(new THREE.ConeGeometry(0.13, 0.5, 6), std({ roughness: 0.7 }), n);
+      scene.add(m);
+      return m;
+    };
+    const blues = [0x3f55d1, 0x4a63e0, 0x5a4fcf, 0x3b4cb8].map((c) => new THREE.Color(c));
+    const cream = new THREE.Color(0xf4f1e6);
+    /* is a spot on the figure-8 road (plus a margin)? checks every 4th centre-line point */
+    const nearRoad = (x, z, margin) => {
+      for (let i = 0; i < T.N; i += 4) if (Math.hypot(T.x[i] - x, T.z[i] - z) < TRACK_W / 2 + margin) return true;
+      return false;
+    };
+    let startIdx = 0;
+
+    if (!RACE) {
+      /* ================= Coin Arena: a ring-shaped track ================= */
+      const TRACK_IN = 30, TRACK_OUT = 40, TRACK_MID = 35;
+      const track = new THREE.Mesh(new THREE.RingGeometry(TRACK_IN, TRACK_OUT, HIGH ? 180 : 96, 1),
+        std({ map: asphaltTex, roughness: 0.92, envMapIntensity: 0.3 }));
+      track.rotation.x = -Math.PI / 2;
+      track.position.y = 0.02;
+      track.receiveShadow = true;
+      scene.add(track);
+
+      function ringInstances(geo, mat, count, radius, y, colorFn) {
+        const inst = new THREE.InstancedMesh(geo, mat, count);
+        for (let i = 0; i < count; i++) {
+          const ang = (i / count) * Math.PI * 2;
+          dummy.position.set(Math.cos(ang) * radius, y, Math.sin(ang) * radius);
+          dummy.rotation.set(0, -ang, 0);
+          dummy.scale.set(1, 1, 1);
+          dummy.updateMatrix();
+          inst.setMatrixAt(i, dummy.matrix);
+          if (colorFn) inst.setColorAt(i, colorFn(i));
+        }
+        inst.receiveShadow = true;
+        scene.add(inst);
+        return inst;
+      }
+      const curbN = HIGH ? 120 : 72;
+      [TRACK_IN, TRACK_OUT].forEach((r) => {
+        ringInstances(new THREE.BoxGeometry(0.9, 0.14, ((2 * Math.PI * r) / curbN) * 0.97),
+          std({ roughness: 0.6 }), curbN, r, 0.07, (i) => (i % 2 ? curbWhite : curbRed));
+      });
+      ringInstances(new THREE.BoxGeometry(0.3, 0.03, 1.8), std({ color: 0xf2efe4, roughness: 0.7 }), 56, TRACK_MID, 0.04);
+
+      /* bluebonnet patches in the grass, a nod to Texas */
+      const bbN = HIGH ? 900 : 300;
+      const bonnets = bluebonnetMesh(bbN);
+      for (let i = 0; i < bbN; i++) {
+        const clump = Math.floor(i / 12);
+        const inner = clump % 2 === 0;
+        const cr = inner ? 6 + ((clump * 7.3) % 20) : 42 + ((clump * 5.1) % 10);
+        const ang = ((clump * 2.399) % (Math.PI * 2)) + (Math.random() - 0.5) * 0.12;
+        const r = cr + (Math.random() - 0.5) * 2.2;
+        const s = 0.7 + Math.random() * 0.6;
+        dummy.position.set(Math.cos(ang) * r, 0.25 * s, Math.sin(ang) * r);
+        dummy.rotation.set(0, 0, 0);
+        dummy.scale.set(s, s, s);
+        dummy.updateMatrix();
+        bonnets.setMatrixAt(i, dummy.matrix);
+        bonnets.setColorAt(i, i % 9 === 0 ? cream : blues[i % blues.length]);
+      }
+
+      /* traffic cones around the edge of the arena */
+      const coneMat = std({ color: 0xf07a1a, roughness: 0.55 });
+      const stripeMat = std({ color: 0xffffff, roughness: 0.5 });
+      const coneBaseMat = std({ color: 0x2b2f36, roughness: 0.8 });
+      const coneGeo = new THREE.ConeGeometry(0.55, 1.5, HIGH ? 24 : 12);
+      const stripeGeo = new THREE.CylinderGeometry(0.215, 0.297, 0.22, HIGH ? 24 : 12);
+      const coneBaseGeo = new THREE.BoxGeometry(1.2, 0.12, 1.2);
+      for (let i = 0; i < 32; i++) {
+        const ang = (i / 32) * Math.PI * 2;
+        const g = new THREE.Group();
+        const cBody = new THREE.Mesh(coneGeo, coneMat); cBody.position.y = 0.87;
+        const stripe = new THREE.Mesh(stripeGeo, stripeMat); stripe.position.y = 0.95;
+        const base = new THREE.Mesh(coneBaseGeo, coneBaseMat); base.position.y = 0.06;
+        g.add(cBody, stripe, base);
+        g.position.set(Math.cos(ang) * RADIUS, 0, Math.sin(ang) * RADIUS);
+        g.rotation.y = ang;
+        g.traverse((o) => { o.castShadow = HIGH; });
+        scene.add(g);
+      }
+      const treeN = HIGH ? 30 : 14;
+      for (let i = 0; i < treeN; i++) {
+        const ang = (i / treeN) * Math.PI * 2 + Math.random() * 0.2;
+        const r = 64 + Math.random() * 30;
+        scene.add(makeTree(Math.cos(ang) * r, Math.sin(ang) * r, i));
+      }
+    } else {
+      /* ================= Figure-8 Race course ================= */
+      const N = T.N;
+      /* the road: one ribbon along the centre line. The second pass over the crossing sits a hair higher so the two layers don't flicker. */
+      const pos = new Float32Array((N + 1) * 2 * 3), uv = new Float32Array((N + 1) * 2 * 2), idx = [];
+      for (let r = 0; r <= N; r++) {
+        const i = r % N;
+        const nx = -T.tz[i], nz = T.tx[i];
+        const second = i > N * 0.3 && i < N * 0.8 && Math.hypot(T.x[i], T.z[i]) < 20;
+        const y = second ? 0.034 : 0.02;
+        for (let s = 0; s < 2; s++) {
+          const side = s ? 1 : -1, k = (r * 2 + s);
+          pos[k * 3] = T.x[i] + nx * side * TRACK_W / 2;
+          pos[k * 3 + 1] = y;
+          pos[k * 3 + 2] = T.z[i] + nz * side * TRACK_W / 2;
+          uv[k * 2] = s; uv[k * 2 + 1] = (r * T.step) / TRACK_W;
+        }
+        if (r < N) { const a = r * 2; idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); }
+      }
+      const roadGeo = new THREE.BufferGeometry();
+      roadGeo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+      roadGeo.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
+      roadGeo.setIndex(idx);
+      roadGeo.computeVertexNormals();
+      asphaltTex.repeat.set(1, 1);
+      const road = new THREE.Mesh(roadGeo, std({ map: asphaltTex, roughness: 0.92, envMapIntensity: 0.3, side: THREE.DoubleSide }));
+      road.receiveShadow = true;
+      scene.add(road);
+
+      /* red-and-white curbs down both edges (left open where the roads cross) and a dashed centre line */
+      const curbIdx = [];
+      for (let i = 0; i < N; i += 2) if (Math.hypot(T.x[i], T.z[i]) > 14) curbIdx.push(i);
+      const curbs = new THREE.InstancedMesh(new THREE.BoxGeometry(0.9, 0.14, T.step * 2 * 0.98), std({ roughness: 0.6 }), curbIdx.length * 2);
+      let ci = 0;
+      curbIdx.forEach((i) => {
+        const nx = -T.tz[i], nz = T.tx[i], h = Math.atan2(T.tx[i], T.tz[i]);
+        [-1, 1].forEach((side) => {
+          dummy.position.set(T.x[i] + nx * side * (TRACK_W / 2 + 0.35), 0.07, T.z[i] + nz * side * (TRACK_W / 2 + 0.35));
+          dummy.rotation.set(0, h, 0); dummy.scale.set(1, 1, 1); dummy.updateMatrix();
+          curbs.setMatrixAt(ci, dummy.matrix);
+          curbs.setColorAt(ci, (i / 2) % 4 < 2 ? curbRed : curbWhite);
+          ci++;
+        });
+      });
+      curbs.receiveShadow = true;
+      scene.add(curbs);
+      const dashIdx = [];
+      for (let i = 0; i < N; i += 6) if (Math.hypot(T.x[i], T.z[i]) > 9 && i > 6) dashIdx.push(i);
+      const dashes = new THREE.InstancedMesh(new THREE.BoxGeometry(0.3, 0.03, 1.8), std({ color: 0xf2efe4, roughness: 0.7 }), dashIdx.length);
+      dashIdx.forEach((i, k) => {
+        const second = i > N * 0.3 && i < N * 0.8 && Math.hypot(T.x[i], T.z[i]) < 20;
+        dummy.position.set(T.x[i], second ? 0.05 : 0.04, T.z[i]);
+        dummy.rotation.set(0, Math.atan2(T.tx[i], T.tz[i]), 0); dummy.scale.set(1, 1, 1); dummy.updateMatrix();
+        dashes.setMatrixAt(k, dummy.matrix);
+      });
+      scene.add(dashes);
+
+      /* checkered start/finish line and a banner over it */
+      const chk = document.createElement("canvas");
+      chk.width = 128; chk.height = 32;
+      const cx = chk.getContext("2d");
+      for (let a = 0; a < 16; a++) for (let b = 0; b < 4; b++) { cx.fillStyle = (a + b) % 2 ? "#111" : "#fff"; cx.fillRect(a * 8, b * 8, 8, 8); }
+      const chkTex = srgb(new THREE.CanvasTexture(chk));
+      const h0 = Math.atan2(T.tx[startIdx], T.tz[startIdx]);
+      const line = new THREE.Mesh(new THREE.PlaneGeometry(TRACK_W, 2.2), std({ map: chkTex, roughness: 0.8 }));
+      line.rotation.x = -Math.PI / 2;
+      const lineG = new THREE.Group();
+      lineG.add(line);
+      lineG.position.set(T.x[startIdx], 0.045, T.z[startIdx]);
+      lineG.rotation.y = h0;
+      scene.add(lineG);
+
+      const ban = document.createElement("canvas");
+      ban.width = 512; ban.height = 96;
+      const bx = ban.getContext("2d");
+      bx.fillStyle = "#1B62E8"; bx.fillRect(0, 0, 512, 96);
+      for (let a = 0; a < 64; a++) for (let b = 0; b < 2; b++) {
+        bx.fillStyle = (a + b) % 2 ? "#111" : "#fff";
+        bx.fillRect(a * 8, b * 8, 8, 8); bx.fillRect(a * 8, 80 + b * 8, 8, 8);
+      }
+      bx.fillStyle = "#FFD21F"; bx.font = "bold 50px 'Trebuchet MS', sans-serif"; bx.textAlign = "center"; bx.textBaseline = "middle";
+      bx.fillText("LEARN & RACE!", 256, 50);
+      const banTex = srgb(new THREE.CanvasTexture(ban));
+      const gantry = new THREE.Group();
+      const postMat = std({ color: 0xdfe5ee, metalness: scene.environment ? 0.6 : 0.2, roughness: 0.35 });
+      [-1, 1].forEach((side) => {
+        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.32, 7, 14), postMat);
+        post.position.set(side * (TRACK_W / 2 + 1.3), 3.5, 0);
+        gantry.add(post);
+      });
+      const banner = new THREE.Mesh(new THREE.BoxGeometry(TRACK_W + 3.4, 1.9, 0.3),
+        [postMat, postMat, postMat, postMat, std({ map: banTex, roughness: 0.6 }), std({ map: banTex, roughness: 0.6 })]);
+      banner.position.y = 6.6;
+      gantry.add(banner);
+      gantry.position.set(T.x[startIdx], 0, T.z[startIdx]);
+      gantry.rotation.y = h0;
+      gantry.traverse((o) => { o.castShadow = HIGH; });
+      scene.add(gantry);
+
+      /* a small grandstand on the outside of the start straight, with a cheering crowd */
+      const outSide = (() => {
+        const nx = -T.tz[startIdx], nz = T.tx[startIdx];
+        const ax = T.x[startIdx] + nx * 10, az = T.z[startIdx] + nz * 10;
+        return Math.hypot(ax, az) > Math.hypot(T.x[startIdx], T.z[startIdx]) ? 1 : -1;
+      })();
+      const stand = new THREE.Group();
+      const standMat = std({ color: 0x9aa6b8, roughness: 0.8 });
+      for (let s = 0; s < 3; s++) {
+        const step = new THREE.Mesh(new THREE.BoxGeometry(22, 1 + s * 1.1, 2.2), standMat);
+        step.position.set(0, (1 + s * 1.1) / 2, s * 2.2);
+        stand.add(step);
+      }
+      const roof = new THREE.Mesh(new THREE.BoxGeometry(23, 0.3, 7.6), std({ color: 0xd8362a, roughness: 0.6 }));
+      roof.position.set(0, 6.2, 2.2);
+      stand.add(roof);
+      [-11, 11].forEach((x) => { const p = new THREE.Mesh(new THREE.BoxGeometry(0.3, 6.2, 0.3), standMat); p.position.set(x, 3.1, 5.4); stand.add(p); });
+      const crowdN = 88;
+      const crowd = new THREE.InstancedMesh(new THREE.SphereGeometry(0.26, 10, 8), std({ roughness: 0.7 }), crowdN);
+      const shirt = [0x1b62e8, 0xf5c518, 0xd8362a, 0x12a05a, 0x8b3fd6, 0xffffff, 0xee7b1b].map((c) => new THREE.Color(c));
+      for (let k = 0; k < crowdN; k++) {
+        const row = k % 3, col = Math.floor(k / 3);
+        dummy.position.set(-10.3 + col * 0.72 + (Math.random() - 0.5) * 0.15, 1.3 + row * 1.1, row * 2.2 + (Math.random() - 0.5) * 0.4);
+        dummy.rotation.set(0, 0, 0); dummy.scale.set(1, 1.25, 1); dummy.updateMatrix();
+        crowd.setMatrixAt(k, dummy.matrix);
+        crowd.setColorAt(k, shirt[(k * 5) % shirt.length]);
+      }
+      stand.add(crowd);
+      const snx = -T.tz[startIdx] * outSide, snz = T.tx[startIdx] * outSide;
+      stand.position.set(T.x[startIdx] + snx * (TRACK_W / 2 + 6), 0, T.z[startIdx] + snz * (TRACK_W / 2 + 6));
+      stand.rotation.y = Math.atan2(snx, snz);
+      stand.traverse((o) => { o.castShadow = HIGH; o.receiveShadow = HIGH; });
+      scene.add(stand);
+      stand.userData.crowd = crowd;
+
+      /* tyre walls on the outside of the four tight bends */
+      const tyreGeo = new THREE.TorusGeometry(0.55, 0.28, 8, 16);
+      const tyreMat = std({ color: 0x1d2027, roughness: 0.9 });
+      const bends = [];
+      for (let i = 0; i < N; i++) if (T.curv[i] > 0.045 && (i % 5 === 0)) bends.push(i);
+      const tyres = new THREE.InstancedMesh(tyreGeo, tyreMat, bends.length * 2);
+      let ti = 0;
+      bends.forEach((i) => {
+        /* the outside of a bend is away from where the road turns */
+        const a = (i + 6) % N;
+        const turn = T.tx[i] * T.tz[a] - T.tz[i] * T.tx[a];
+        const side = turn > 0 ? 1 : -1;
+        const nx = -T.tz[i] * side, nz = T.tx[i] * side;
+        for (let h = 0; h < 2; h++) {
+          dummy.position.set(T.x[i] + nx * (TRACK_W / 2 + 3.2), 0.3 + h * 0.56, T.z[i] + nz * (TRACK_W / 2 + 3.2));
+          dummy.rotation.set(Math.PI / 2, 0, 0); dummy.scale.set(1, 1, 1); dummy.updateMatrix();
+          tyres.setMatrixAt(ti++, dummy.matrix);
+        }
+      });
+      tyres.castShadow = HIGH;
+      scene.add(tyres);
+
+      /* bluebonnets and trees, kept off the road */
+      const bbN = HIGH ? 900 : 320;
+      const bonnets = bluebonnetMesh(bbN);
+      let placed = 0, guard = 0, cxp = 0, czp = 0;
+      while (placed < bbN && guard < 20000) {
+        guard++;
+        if (placed % 14 === 0) { cxp = (Math.random() - 0.5) * 230; czp = (Math.random() - 0.5) * 150; }
+        const x = cxp + (Math.random() - 0.5) * 4, z = czp + (Math.random() - 0.5) * 4;
+        if (nearRoad(x, z, 1.5)) { if (placed % 14 === 0) continue; continue; }
+        const s = 0.7 + Math.random() * 0.6;
+        dummy.position.set(x, 0.25 * s, z); dummy.rotation.set(0, 0, 0); dummy.scale.set(s, s, s); dummy.updateMatrix();
+        bonnets.setMatrixAt(placed, dummy.matrix);
+        bonnets.setColorAt(placed, placed % 9 === 0 ? cream : blues[placed % blues.length]);
+        placed++;
+      }
+      bonnets.count = placed;
+      const treeN = HIGH ? 46 : 22;
+      let trees = 0; guard = 0;
+      while (trees < treeN && guard < 3000) {
+        guard++;
+        const inLobe = trees % 4 === 0;
+        const x = inLobe ? (trees % 8 === 0 ? 1 : -1) * (46 + (Math.random() - 0.5) * 18) : (Math.random() - 0.5) * 280;
+        const z = inLobe ? (Math.random() - 0.5) * 22 : (Math.random() - 0.5) * 190;
+        if (nearRoad(x, z, 7)) continue;
+        if (Math.hypot(x - stand.position.x, z - stand.position.z) < 18) continue;
+        scene.add(makeTree(x, z, trees));
+        trees++;
+      }
     }
 
-    /* ================= the car ================= */
+    /* ================= the cars ================= */
     const { carGroup, wheels, flame, flagMesh } = buildCarModel({ have, picks, bodyColor, name, HIGH, hasEnv: !!scene.environment, srgb });
     const METAL = scene.environment ? 1 : 0.35;     // coins use the same metal rule as the car
     scene.add(carGroup);
-    carGroup.position.set(TRACK_MID, 0, 0);        // start on the track, facing along it
-    camera.position.set(TRACK_MID, 3.2, 7);
+    let heading = Math.PI;
+    let speed = 0;
+
+    /* computer racers — full cars, different colours */
+    const rivals = [];
+    const lvl = RACE_LEVELS.find((l) => l.id === level) || RACE_LEVELS[0];
+    const GRID = [[-7, -3.2], [-7, 3.2], [-17, -3.2], [-17, 3.2]];     // [samples behind the line, lane]
+    const sampleAt = (s) => {
+      const f = ((s % T.N) + T.N) % T.N, i = Math.floor(f), a = (i + 1) % T.N, u = f - i;
+      return {
+        x: T.x[i] + (T.x[a] - T.x[i]) * u, z: T.z[i] + (T.z[a] - T.z[i]) * u,
+        tx: T.tx[i] + (T.tx[a] - T.tx[i]) * u, tz: T.tz[i] + (T.tz[a] - T.tz[i]) * u, i,
+      };
+    };
+    const wrapI = (s) => ((Math.floor(s) % T.N) + T.N) % T.N;
+    let pIdx = 0, pTotal = 0, wrongFrames = 0;
+    if (RACE) {
+      RIVALS.forEach((r) => {
+        const m = buildCarModel({
+          have: { wheels: true, paint: true, lights: true, top: true, plate: true },
+          picks: { wheels: "classic", top: "spoiler" }, bodyColor: r.color, name: r.name,
+          HIGH, hasEnv: !!scene.environment, srgb,
+        });
+        scene.add(m.carGroup);
+        const [back, lane] = GRID[r.slot];
+        rivals.push({ ...r, g: m.carGroup, wheels: m.wheels, s: back, lane, laneT: lane, v: 0, done: false, finishT: 0, jitter: Math.random() * 10 });
+      });
+      const [back, lane] = GRID[3];
+      const sp = sampleAt(back);
+      carGroup.position.set(sp.x - sp.tz * lane, 0, sp.z + sp.tx * lane);
+      heading = Math.atan2(sp.tx, sp.tz);
+      pIdx = sp.i; pTotal = back;
+      camera.position.set(carGroup.position.x - Math.sin(heading) * 7, 3.2, carGroup.position.z - Math.cos(heading) * 7);
+      rivals.forEach((r) => {
+        const q = sampleAt(r.s);
+        r.g.position.set(q.x - q.tz * r.lane, 0, q.z + q.tx * r.lane);
+        r.g.rotation.y = Math.atan2(q.tx, q.tz);
+      });
+    } else {
+      carGroup.position.set(35, 0, 0);          // start on the ring, facing along it
+      camera.position.set(35, 3.2, 7);
+    }
+    carGroup.rotation.y = heading;
 
     /* ---- coins: gold discs that spin and bob; drive through them to collect ---- */
     const coinGeo = new THREE.CylinderGeometry(0.8, 0.8, 0.18, 28);
@@ -3435,11 +3931,18 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
     function spawnCoin() {
       let x = 0, z = 0, tries = 0;
       do {
-        const ang = Math.random() * Math.PI * 2;
-        const r = Math.random() < 0.6                 // most coins sit on the track
-          ? TRACK_IN + 1.5 + Math.random() * (TRACK_OUT - TRACK_IN - 3)
-          : Math.sqrt(Math.random()) * (RADIUS - 8);
-        x = Math.cos(ang) * r; z = Math.sin(ang) * r; tries++;
+        if (RACE) {
+          const s = pTotal + 40 + Math.random() * T.N * 0.8;     // somewhere ahead on the road
+          const q = sampleAt(s), off = (Math.random() - 0.5) * (TRACK_W - 4);
+          x = q.x - q.tz * off; z = q.z + q.tx * off;
+        } else {
+          const ang = Math.random() * Math.PI * 2;
+          const r = Math.random() < 0.6                 // most coins sit on the track
+            ? 31.5 + Math.random() * 7
+            : Math.sqrt(Math.random()) * (RADIUS - 8);
+          x = Math.cos(ang) * r; z = Math.sin(ang) * r;
+        }
+        tries++;
       } while (tries < 30 && (
         Math.hypot(x - carGroup.position.x, z - carGroup.position.z) < 10 ||
         coinsOnField.some((c) => Math.hypot(x - c.position.x, z - c.position.z) < 5)));
@@ -3453,26 +3956,26 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
       scene.add(g);
       coinsOnField.push(g);
     }
-    for (let i = 0; i < 8; i++) spawnCoin();
+    for (let i = 0; i < (RACE ? 10 : 8); i++) spawnCoin();
 
-    /* little "ding" made in code — no sound files */
+    /* little sounds made in code — no sound files */
     let audioCtx = null;
-    function ding() {
+    function tone(freqs, dur, vol = 0.18, type = "triangle") {
       try {
         const AC = window.AudioContext || window.webkitAudioContext;
         if (!AC) return;
         audioCtx = audioCtx || new AC();
         const now = audioCtx.currentTime;
         const o = audioCtx.createOscillator(), gn = audioCtx.createGain();
-        o.type = "triangle";
-        o.frequency.setValueAtTime(880, now);
-        o.frequency.setValueAtTime(1320, now + 0.08);
-        gn.gain.setValueAtTime(0.18, now);
-        gn.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+        o.type = type;
+        freqs.forEach((f, k) => o.frequency.setValueAtTime(f, now + k * 0.08));
+        gn.gain.setValueAtTime(vol, now);
+        gn.gain.exponentialRampToValueAtTime(0.001, now + dur);
         o.connect(gn); gn.connect(audioCtx.destination);
-        o.start(now); o.stop(now + 0.3);
+        o.start(now); o.stop(now + dur);
       } catch { /* sound is optional */ }
     }
+    const ding = () => tone([880, 1320], 0.3);
 
     /* ---- controls ---- */
     const keys = {};
@@ -3490,39 +3993,144 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
 
-    let heading = Math.PI;
-    let speed = 0;
     let frameId;
-
     let t = 0;
     let perfFrames = 0, perfStart = 0, perfChecked = false;
+
+    /* race state (lives in the loop; the HUD is told only when something changes) */
+    let phase = RACE ? "countdown" : "free";
+    let countdown = 3.6, raceTime = 0, goFlash = 0, lastCount = 4, lastHud = "", doneOrder = 0, playerPlace = 0;
+    let lastNow = performance.now();
+    const tellHud = (extra = {}) => {
+      if (!RACE) return;
+      const place = phase === "done" ? playerPlace : 1 + rivals.filter((r) => r.done || r.s > pTotal).length;
+      const lap = Math.min(RACE_LAPS, Math.max(1, Math.floor(pTotal / T.N) + 1));
+      const hud = { phase, count: Math.ceil(countdown - 0.6), go: goFlash > 0, lap, place, wrong: wrongFrames > 50, boost: boostRef.current > 0, ...extra };
+      const sig = JSON.stringify(hud);
+      if (sig !== lastHud) { lastHud = sig; if (onRaceRef.current) onRaceRef.current(hud); }
+    };
+    tellHud();
+
     function animate() {
+      const now = performance.now();
+      const dt = Math.min(0.1, (now - lastNow) / 1000);
+      lastNow = now;
       const paused = pausedRef.current;
-      if (paused) {                            // freeze the car while a question is open
-        speed = 0;
+      if (paused) {                            // freeze everything while a question is open
+        if (!RACE) speed = 0;
         Object.keys(keys).forEach((k) => { keys[k] = false; });
         touch.fwd = touch.back = touch.left = touch.right = false;
       }
-      const accel = (keys["arrowup"] || keys["w"] || touch.fwd) ? 1
+      const canDrive = !paused && (!RACE || phase === "racing" || phase === "done");
+      const accel = !canDrive || (RACE && phase === "done") ? 0
+        : (keys["arrowup"] || keys["w"] || touch.fwd) ? 1
         : (keys["arrowdown"] || keys["s"] || touch.back) ? -1 : 0;
-      const turn = (keys["arrowleft"] || keys["a"] || touch.left) ? 1
+      const turn = !canDrive ? 0 : (keys["arrowleft"] || keys["a"] || touch.left) ? 1
         : (keys["arrowright"] || keys["d"] || touch.right) ? -1 : 0;
 
-      speed += accel * 0.02;
-      speed *= 0.955;
-      if (Math.abs(speed) < 0.004) speed = 0;
-      speed = Math.max(-0.25, Math.min(0.45, speed));
-      if (Math.abs(speed) > 0.01) heading += turn * 0.035 * (speed > 0 ? 1 : -1);
+      if (!(RACE && paused)) {
+        const boosting = RACE && boostRef.current > 0;
+        speed += accel * (boosting ? 0.03 : 0.02);
+        speed *= RACE && phase === "done" ? 0.97 : 0.955;
+        if (Math.abs(speed) < 0.004) speed = 0;
+        speed = Math.max(-0.25, Math.min(boosting ? 0.62 : 0.45, speed));
+        if (Math.abs(speed) > 0.01) heading += turn * 0.035 * (speed > 0 ? 1 : -1);
+        if (boosting) boostRef.current -= 1;
 
-      carGroup.position.x += Math.sin(heading) * speed;
-      carGroup.position.z += Math.cos(heading) * speed;
-      carGroup.rotation.y = heading;
+        carGroup.position.x += Math.sin(heading) * speed;
+        carGroup.position.z += Math.cos(heading) * speed;
+        carGroup.rotation.y = heading;
+      }
 
-      const dist = Math.hypot(carGroup.position.x, carGroup.position.z);
-      if (dist > RADIUS - 3) {
-        const k = (RADIUS - 3) / dist;
-        carGroup.position.x *= k; carGroup.position.z *= k;
-        speed *= 0.4;
+      if (!RACE) {
+        const dist = Math.hypot(carGroup.position.x, carGroup.position.z);
+        if (dist > RADIUS - 3) {
+          const k = (RADIUS - 3) / dist;
+          carGroup.position.x *= k; carGroup.position.z *= k;
+          speed *= 0.4;
+        }
+      } else if (!paused) {
+        /* where is the player on the course? */
+        const nr = nearestOnTrack(T, carGroup.position.x, carGroup.position.z, pIdx);
+        let d = nr.i - pIdx;
+        if (d > T.N / 2) d -= T.N;
+        if (d < -T.N / 2) d += T.N;
+        d = Math.max(-40, Math.min(40, d));
+        pTotal += d; pIdx = nr.i;
+        wrongFrames = d < 0 && speed > 0.05 ? wrongFrames + 1 : Math.max(0, wrongFrames - 3);
+        if (nr.dist > TRACK_W / 2 + 0.8 && Math.abs(speed) > 0.2) speed *= 0.93;   // grass slows you down
+        if (nr.dist > 34) {                                                         // don't wander off the map
+          const q = sampleAt(pIdx);
+          carGroup.position.x += (q.x - carGroup.position.x) * 0.05;
+          carGroup.position.z += (q.z - carGroup.position.z) * 0.05;
+          speed *= 0.8;
+        }
+
+        if (phase === "countdown") {
+          countdown -= dt;
+          const c = Math.ceil(countdown - 0.6);
+          if (c !== lastCount && c >= 1 && c <= 3) { lastCount = c; tone([520], 0.25, 0.2, "square"); }
+          if (countdown <= 0.6) { phase = "racing"; goFlash = 1.2; tone([1040], 0.5, 0.22, "square"); }
+        } else if (phase === "racing") {
+          raceTime += 1 / 60;          // game time, so best times match the car's speed on any screen
+          if (pTotal >= RACE_LAPS * T.N) {
+            phase = "done";
+            doneOrder += 1;
+            playerPlace = 1 + rivals.filter((r) => r.done).length;
+            tone([660, 880, 1320], 0.7, 0.2);
+            tellHud({ time: raceTime });
+          }
+        }
+        if (goFlash > 0) goFlash -= dt;
+
+        /* computer racers follow the road, slowing for tight bends */
+        rivals.forEach((r) => {
+          if (phase === "countdown") return;
+          const bend = Math.max(T.curv[wrapI(r.s)], T.curv[wrapI(r.s + 10)], T.curv[wrapI(r.s + 22)]);
+          let target = r.base * lvl.mult * (1 - Math.min(0.28, bend * 3.2));
+          const gap = r.s - pTotal;                     // gentle catch-up so races stay close
+          if (gap > T.N * 0.2) target *= 0.9;
+          else if (gap < -T.N * 0.2) target *= 1.07;
+          if (r.done) target = 0.2;
+          target *= 1 + Math.sin(t * 0.7 + r.jitter) * 0.03;
+          r.v += (target - r.v) * 0.03;
+          /* don't drive through the player: ease off and swing wide */
+          const q0 = sampleAt(r.s);
+          const px = carGroup.position.x - q0.x, pz = carGroup.position.z - q0.z;
+          const along = px * q0.tx + pz * q0.tz, across = px * -q0.tz + pz * q0.tx;
+          if (along > 0 && along < 7 && Math.abs(across - r.lane) < 2.6) {
+            r.v *= 0.97;
+            r.laneT = across > 0 ? Math.max(-4.2, across - 3.4) : Math.min(4.2, across + 3.4);
+          } else if (Math.random() < 0.002) {
+            r.laneT = [-3.2, 0, 3.2][Math.floor(Math.random() * 3)];
+          }
+          r.lane += (r.laneT - r.lane) * 0.02;
+          r.s += r.v / T.step;
+          if (!r.done && r.s >= RACE_LAPS * T.N) { r.done = true; doneOrder += 1; }
+          const q = sampleAt(r.s);
+          r.g.position.set(q.x - q.tz * r.lane, 0, q.z + q.tx * r.lane);
+          r.g.rotation.y = Math.atan2(q.tx, q.tz);
+          r.wheels.forEach((w) => { w.rotation.x += r.v * 4; });
+          /* bump: push the player out of the way a little */
+          const bx = carGroup.position.x - r.g.position.x, bz = carGroup.position.z - r.g.position.z;
+          const bd = Math.hypot(bx, bz);
+          if (bd < 2.6 && bd > 0.001) {
+            const push = (2.6 - bd) / bd;
+            carGroup.position.x += bx * push * 0.6; carGroup.position.z += bz * push * 0.6;
+            speed *= 0.9;
+          }
+        });
+
+        if (clockRef.current) clockRef.current.textContent = fmtRace(raceTime);
+        if (perfFrames % 3 === 0) {
+          const dots = dotRefs.current;
+          if (dots[0]) { dots[0].setAttribute("cx", mapX(carGroup.position.x)); dots[0].setAttribute("cy", mapZ(carGroup.position.z)); }
+          rivals.forEach((r, k) => {
+            const el = dots[k + 1];
+            if (el) { el.setAttribute("cx", mapX(r.g.position.x)); el.setAttribute("cy", mapZ(r.g.position.z)); }
+          });
+        }
+        if (perfFrames % 10 === 0 || phase === "countdown") tellHud();
       }
 
       t += 0.016;
@@ -3530,9 +4138,11 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
         const c = coinsOnField[i];
         c.rotation.y += 0.05;
         c.position.y = 1.3 + Math.sin(t * 3 + c.userData.phase) * 0.2;
-        if (!pausedRef.current && Math.hypot(c.position.x - carGroup.position.x, c.position.z - carGroup.position.z) < 2.3) {
+        if (!pausedRef.current && (!RACE || phase !== "countdown") &&
+          Math.hypot(c.position.x - carGroup.position.x, c.position.z - carGroup.position.z) < 2.3) {
           scene.remove(c);
           coinsOnField.splice(i, 1);
+          if (RACE && phase === "done") { spawnCoin(); continue; }
           coinsRef.current += 1;
           ding();
           if (onCoinRef.current) onCoinRef.current(coinsRef.current);
@@ -3597,18 +4207,25 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
       renderer.dispose();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [quality]);
+  }, [quality, mode, runKey]);
 
   const setTouch = (key, val) => {
     if (mountRef.current && mountRef.current.touchState) mountRef.current.touchState[key] = val;
   };
+  const T8 = figure8();
+  const best = (progress.raceBest || {})[level];
 
   return (
     <div className="drive3d">
       <div className="drive3d-top">
-        <b>🚗 {(car.name || "BRICK").toUpperCase()}</b>
-        {secsLeft !== null && (
+        <b>🏎️ {(car.name || "RACER").toUpperCase()}</b>
+        {TIMED && secsLeft !== null && (
           <span className="bd-timer-badge">⏱ {Math.floor(secsLeft / 60)}:{String(secsLeft % 60).padStart(2, "0")}</span>
+        )}
+        {mode && (
+          <button className="btn ghost" onClick={() => { setMode(null); setResult(null); setChallenge(null); pausedRef.current = false; }}>
+            🗺️ Change track
+          </button>
         )}
         <button className="btn ghost" onClick={toggleQuality} title="Switch graphics quality">
           {quality === "high" ? "✨ Graphics: High" : "⚡ Graphics: Fast"}
@@ -3616,28 +4233,132 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
         <button className="btn ghost" onClick={finish}>✕ Done driving</button>
       </div>
       <div className="drive3d-mount" ref={mountRef}>
-        <p className="drive3d-hint">Drive through the 🪙 coins! Every 5th coin is a challenge question.</p>
+        {mode === "free" && <p className="drive3d-hint">Drive through the 🪙 coins! Every 5th coin is a challenge question.</p>}
+        {mode === "race" && race && race.phase === "countdown" && race.count > 0 && (
+          <div className="rc-count" key={race.count} aria-live="assertive">{race.count}</div>
+        )}
+        {mode === "race" && race && race.go && <div className="rc-count go" aria-live="assertive">GO!</div>}
+        {mode === "race" && race && race.wrong && race.phase === "racing" && <div className="rc-wrong">↩️ Wrong way! Turn around</div>}
+        {mode === "race" && race && race.boost && <div className="rc-boost">🔥 Turbo boost!</div>}
         {gfxNote && <div className="drive3d-note">{gfxNote}</div>}
-        <div className="drive3d-hud">
-          🪙 {coins} <span>· {5 - (coins % 5)} to next challenge</span>{stars > 0 && <> · ⭐ {stars}</>}
-        </div>
+        {mode === "free" && (
+          <div className="drive3d-hud">
+            🪙 {coins} <span>· {5 - (coins % 5)} to next challenge</span>{stars > 0 && <> · ⭐ {stars}</>}
+          </div>
+        )}
+        {mode === "race" && (
+          <div className="rc-hud">
+            <div className="rc-row">
+              <span className="rc-place">{race ? placeWord(race.place) : "4th"}<small> of 4</small></span>
+              <span className="rc-lap">Lap {race ? race.lap : 1}/{RACE_LAPS}</span>
+            </div>
+            <div className="rc-row small2">
+              <span>⏱ <b ref={clockRef}>0:00.0</b></span>
+              <span>🪙 {coins}{stars > 0 ? ` · ⭐ ${stars}` : ""}</span>
+            </div>
+            <span className="rc-tip">Every 5th coin is a question. Get it right for a turbo boost!</span>
+          </div>
+        )}
+        {mode === "race" && (
+          <svg className="rc-map" viewBox="0 0 200 120" aria-label="Mini map of the figure-8 track">
+            <path d={T8.path} fill="none" stroke="#3b3f47" strokeWidth="9" strokeLinejoin="round" />
+            <path d={T8.path} fill="none" stroke="#fff" strokeWidth="1.2" strokeDasharray="3 4" opacity=".7" />
+            <rect x={mapX(T8.x[0]) - 5} y={mapZ(T8.z[0]) - 2} width="10" height="4" fill="#fff" stroke="#111" strokeWidth=".8"
+              transform={`rotate(${(-Math.atan2(T8.tx[0], T8.tz[0]) * 180) / Math.PI} ${mapX(T8.x[0])} ${mapZ(T8.z[0])})`} />
+            {RIVALS.map((r, k) => (
+              <circle key={r.name} ref={(el) => { dotRefs.current[k + 1] = el; }} r="4" fill={r.css} stroke="#fff" strokeWidth="1.5" />
+            ))}
+            <circle ref={(el) => { dotRefs.current[0] = el; }} r="5.5" fill={car.color || "#1B62E8"} stroke="#FFD21F" strokeWidth="2.2" />
+          </svg>
+        )}
+
+        {!mode && (
+          <div className="rc-pick">
+            <div className="rc-pickin">
+              <h2>Where do you want to drive?</h2>
+              <div className="rc-cards">
+                <div className="rc-card race">
+                  <svg viewBox="0 0 200 120" className="rc-cardmap" aria-hidden="true">
+                    <path d={T8.path} fill="none" stroke={INK} strokeWidth="14" strokeLinejoin="round" />
+                    <path d={T8.path} fill="none" stroke="#5d626c" strokeWidth="10" strokeLinejoin="round" />
+                    <path d={T8.path} fill="none" stroke="#fff" strokeWidth="1.4" strokeDasharray="4 5" />
+                    <circle cx={mapX(T8.x[0])} cy={mapZ(T8.z[0])} r="6" fill="#FFD21F" stroke={INK} strokeWidth="2" />
+                  </svg>
+                  <h3>🏁 Figure-8 Race</h3>
+                  <p>{RACE_LAPS} laps against 3 computer cars. Watch the crossing in the middle!</p>
+                  <div className="rc-levels" role="group" aria-label="How fast are the computer cars?">
+                    {RACE_LEVELS.map((l) => (
+                      <button key={l.id} className={`rc-lv ${level === l.id ? "on" : ""}`} aria-pressed={level === l.id} onClick={() => setLevel(l.id)}>
+                        <b>{l.name}</b><span>{l.note}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <p className="small" style={{ margin: "8px 0 10px" }}>
+                    {best ? `Your best on ${RACE_LEVELS.find((l) => l.id === level).name}: ${fmtRace(best.time)} (${placeWord(best.place)} place)` : "No race time yet on this level."}
+                  </p>
+                  <button className="btn gold" onClick={() => startMode("race")}>🏁 Start the race</button>
+                </div>
+                <div className="rc-card">
+                  <svg viewBox="0 0 200 120" className="rc-cardmap" aria-hidden="true">
+                    <ellipse cx="100" cy="60" rx="52" ry="46" fill="none" stroke={INK} strokeWidth="18" />
+                    <ellipse cx="100" cy="60" rx="52" ry="46" fill="none" stroke="#5d626c" strokeWidth="14" />
+                    <ellipse cx="100" cy="60" rx="52" ry="46" fill="none" stroke="#fff" strokeWidth="1.4" strokeDasharray="4 5" />
+                    {[[100, 14], [152, 60], [62, 92], [100, 60]].map(([x, y], k) => (
+                      <circle key={k} cx={x} cy={y} r="7" fill="#FFD21F" stroke={INK} strokeWidth="2" />
+                    ))}
+                  </svg>
+                  <h3>Coin Arena</h3>
+                  <p>Free drive on the round track. Collect coins and answer challenge questions.</p>
+                  {timeLimitSec ? <p className="small">You have {Math.round(timeLimitSec / 60)} minutes of reward driving here.</p> : null}
+                  <button className="btn" onClick={() => startMode("free")}>Drive the arena</button>
+                </div>
+              </div>
+              <p className="small rc-keys">Steer with the arrow keys or W A S D. On a tablet, use the buttons at the bottom.</p>
+            </div>
+          </div>
+        )}
+
+        {mode === "race" && result && (
+          <div className="rc-result">
+            <div className="rc-resultin">
+              <div className="rc-trophy">{result.place === 1 ? "🏆" : result.place === 2 ? "🥈" : result.place === 3 ? "🥉" : "🏁"}</div>
+              <h2>{result.place === 1 ? "You won the race!" : `You finished ${placeWord(result.place)}!`}</h2>
+              <p className="lede" style={{ margin: "4px 0" }}>Time: <b>{fmtRace(result.time)}</b> for {RACE_LAPS} laps</p>
+              <p className="small" style={{ margin: 0 }}>
+                {result.newBest ? "⭐ New best time on this level!" : `Best on this level: ${fmtRace(result.best)}`}
+                {stars > 0 ? ` · ${stars} ${stars === 1 ? "question" : "questions"} right` : ""}
+              </p>
+              <p className="small" style={{ margin: "6px 0 14px" }}>
+                {result.place === 1 && level !== "champ" ? "Ready for a faster level? Try the next one up." :
+                  result.place > 1 ? "Tip: stay on the grey road — the grass slows you down. Coins give turbo boosts!" : "Champion driver!"}
+              </p>
+              <div className="btnrow" style={{ justifyContent: "center" }}>
+                <button className="btn gold" onClick={() => startMode("race")}>🔁 Race again</button>
+                <button className="btn ghost" onClick={() => { setMode(null); setResult(null); }}>Change level or track</button>
+                <button className="btn ghost" onClick={finish}>Done</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-      <div className="drive3d-pad">
-        <button className="dpad-btn"
-          onPointerDown={() => setTouch("left", true)} onPointerUp={() => setTouch("left", false)}
-          onPointerLeave={() => setTouch("left", false)}>⟲</button>
-        <div className="dpad-mid">
+      {mode && (
+        <div className="drive3d-pad">
           <button className="dpad-btn"
-            onPointerDown={() => setTouch("fwd", true)} onPointerUp={() => setTouch("fwd", false)}
-            onPointerLeave={() => setTouch("fwd", false)}>▲</button>
+            onPointerDown={() => setTouch("left", true)} onPointerUp={() => setTouch("left", false)}
+            onPointerLeave={() => setTouch("left", false)}>⟲</button>
+          <div className="dpad-mid">
+            <button className="dpad-btn"
+              onPointerDown={() => setTouch("fwd", true)} onPointerUp={() => setTouch("fwd", false)}
+              onPointerLeave={() => setTouch("fwd", false)}>▲</button>
+            <button className="dpad-btn"
+              onPointerDown={() => setTouch("back", true)} onPointerUp={() => setTouch("back", false)}
+              onPointerLeave={() => setTouch("back", false)}>▼</button>
+          </div>
           <button className="dpad-btn"
-            onPointerDown={() => setTouch("back", true)} onPointerUp={() => setTouch("back", false)}
-            onPointerLeave={() => setTouch("back", false)}>▼</button>
+            onPointerDown={() => setTouch("right", true)} onPointerUp={() => setTouch("right", false)}
+            onPointerLeave={() => setTouch("right", false)}>⟳</button>
         </div>
-        <button className="dpad-btn"
-          onPointerDown={() => setTouch("right", true)} onPointerUp={() => setTouch("right", false)}
-          onPointerLeave={() => setTouch("right", false)}>⟳</button>
-      </div>
+      )}
       {challenge && (() => {
         const q = challenge.q;
         const noop = () => {};
@@ -3655,14 +4376,16 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
               {q.type === "multi" && !locked && <div className="small">Pick exactly {q.pick || 2}.</div>}
               {locked && (
                 <div className={`fb ${right ? "ok" : "no"}`}>
-                  <h3>{right ? (timeLimitSec ? "Right! +15 seconds of driving ⭐" : "Right! You earned a star ⭐") : "Here's why that one isn't right —"}</h3>
+                  <h3>{right
+                    ? (mode === "race" ? "Right! Turbo boost coming 🔥" : TIMED ? "Right! +15 seconds of driving ⭐" : "Right! You earned a star ⭐")
+                    : "Here's why that one isn't right —"}</h3>
                   <p><RichText text={q.exp} onWord={noop} /></p>
                 </div>
               )}
               <div className="btnrow" style={{ justifyContent: "center" }}>
                 {!locked
                   ? <button className="btn" disabled={!isAnswered(q, ans)} onClick={checkChallenge}>Check</button>
-                  : <button className="btn gold" onClick={resume}>🚗 Keep driving</button>}
+                  : <button className="btn gold" onClick={resume}>🏎️ Keep driving</button>}
               </div>
             </div>
           </div>
@@ -3692,18 +4415,19 @@ function Bolt({ line, hidden, onToggle }) {
 /* Bolt's line depends on where you are and what's next. */
 function boltLine(view, progress) {
   const np = nextPart(progress);
-  const bricks = Object.keys(progress.mastered || {}).length;
+  const trophies = Object.keys(progress.mastered || {}).length;
   switch (view.name) {
     case "map":
       if (!progress.car || !progress.car.name) return "Welcome! Pick any challenge to start building your car. You can name it in My Garage.";
       return np ? "Pick a challenge. Finishing it builds your car, any score counts!" : "Your car is complete. Take it for a drive!";
-    case "region": return "Tap any lesson card to start. Lessons with a 🧱 are done, but you can play them again.";
+    case "region": return "Tap any lesson card to start. Lessons with a 🏆 are done, but you can play them again.";
     case "concept": return "Follow the 3 steps: learn the goal, see how it works, then try the questions. Tap 🔊 to hear any line.";
     case "garage": return np ? `${np.emoji} ${np.name} is next. ${np.how}.` : "Every part is on. She's ready to roll!";
     case "spell": return "Hear the word, build it from letters, then put the sentence in order.";
     case "mathdrill": return "Fifteen right in one run gets you the turbo.";
+    case "typing": return "Fingers on F and J. Right keys first — speed comes with practice!";
     case "timed": return "Don't freeze on a hard one. Skip it and come back.";
-    case "collection": return `${bricks} of ${CONCEPTS.length} bricks so far. Every run counts, even the tricky ones.`;
+    case "collection": return `${trophies} of ${CONCEPTS.length} trophies so far. Every run counts, even the tricky ones.`;
     default: return "Let's build something.";
   }
 }
@@ -3903,7 +4627,7 @@ function GarageShowroom({ car, progress }) {
     GARAGE_PARTS.forEach((x) => { have[x.id] = x.need(progress); });
     const built = buildCarModel({
       have, picks: car.picks || {}, bodyColor: car.color || "#1B62E8",
-      name: (car.name || "BRICK").toUpperCase().slice(0, 8), HIGH: wd.HIGH, hasEnv: wd.hasEnv, srgb: wd.srgb, ghost: true,
+      name: (car.name || "RACER").toUpperCase().slice(0, 8), HIGH: wd.HIGH, hasEnv: wd.hasEnv, srgb: wd.srgb, ghost: true,
     });
     built.carGroup.position.y = 0.12;
     wd.scene.add(built.carGroup);
@@ -3949,7 +4673,7 @@ function Garage({ progress, push, go }) {
   const badgeCounts = { gold: 0, silver: 0, bronze: 0, try: 0 };
   Object.values(progress.badges || {}).forEach((b) => { if (badgeCounts[b.tier] !== undefined) badgeCounts[b.tier]++; });
   const earnIt = (part) => go(part.goTo ? { ...part.goTo, k: Math.random() } : { name: "map" });
-  const saveName = () => { setCar({ name: name || "BRICK" }); setSaved(true); };
+  const saveName = () => { setCar({ name: name || "RACER" }); setSaved(true); };
   useEffect(() => {
     if (!saved) return undefined;
     const id = setTimeout(() => setSaved(false), 2500);
@@ -3968,7 +4692,7 @@ function Garage({ progress, push, go }) {
       </header>
       <p className="gr-how">
         <b>How to build your car:</b> Finish activities anywhere in the app to earn car parts. Any score counts.
-        Score 80% or higher on a stop to earn a 🧱 brick too.
+        Score 80% or higher on a stop to earn a 🏆 trophy too.
       </p>
 
       <div className="gr-top">
@@ -4031,12 +4755,12 @@ function Garage({ progress, push, go }) {
           <div>
             <label className="gr-label" htmlFor="gr-name">Car name</label>
             <div className="namerow">
-              <input id="gr-name" className="nameinput" value={name} maxLength={8} placeholder="BRICK"
+              <input id="gr-name" className="nameinput" value={name} maxLength={8} placeholder="RACER"
                 onChange={(e) => { setName(e.target.value.replace(/[^a-zA-Z0-9 ]/g, "")); setSaved(false); }}
                 onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); saveName(); } }} />
               <button className="btn" onClick={saveName}>Save</button>
             </div>
-            <p className="gr-saved" role="status" aria-live="polite">{saved ? `✓ Saved! Your car is called ${name || "BRICK"}.` : ""}</p>
+            <p className="gr-saved" role="status" aria-live="polite">{saved ? `✓ Saved! Your car is called ${name || "RACER"}.` : ""}</p>
           </div>
           <div>
             <span className="gr-label" id="gr-paint-label">Paint colour</span>
@@ -4140,6 +4864,402 @@ function Cheer({ title, sub, emoji, onClose }) {
         {sub && <p className="csub">{sub}</p>}
         <button className="btn gold" onClick={onClose}>Keep going</button>
       </div>
+    </div>
+  );
+}
+
+/* ---------------- Typing Speedway: learn to type, race to the finish ----------------
+   Three levels. A wrong key doesn't move the cursor — it flashes red and counts as a miss,
+   so accuracy = right keys ÷ all keys pressed. The clock is optional; when it's on,
+   words per minute uses the standard typing-test rule (every 5 letters or spaces = 1 word). */
+const TYPE_LEVELS = [
+  { id: "easy", name: "Easy", note: "Three-word sentences", eg: "See Jim run.", caps: false, rounds: 5 },
+  { id: "moderate", name: "Moderate", note: "Five to seven words", eg: "The red car went up the hill.", caps: true, rounds: 5 },
+  { id: "hard", name: "Hard", note: "Long sentences with commas and capitals", eg: "After school, Maya raced her bike down the hill.", caps: true, rounds: 4 },
+];
+const TYPE_SENTENCES = {
+  easy: [
+    "See Jim run.", "I can hop.", "The cat sat.", "We like dogs.", "Pam can swim.", "Look at me.",
+    "Go car go.", "Dad is tall.", "I see Mom.", "The dog ran.", "It is fun.", "We can play.",
+    "Kim got wet.", "Run to me.", "The bus stops.", "I like red.", "Bob can jump.", "Cars go fast.",
+    "My hat fell.", "She can sing.", "Fish can swim.", "The sun rose.", "Tim sat down.", "I love pizza.",
+    "Ben has gum.", "Birds can fly.", "We won again.", "Stop and go.",
+  ],
+  moderate: [
+    "The red car went very fast.", "My dog likes to play ball.", "We went to the park today.",
+    "I can see the finish line.", "Mom made eggs for breakfast.", "The blue car passed the green one.",
+    "Jen read a book about sharks.", "Please pass me the orange juice.", "The bell rang and we lined up.",
+    "My team won the big game.", "A bird sat on the fence.", "We drove down a long road.",
+    "Grandpa fixed the flat tire.", "The frog jumped into the pond.", "I packed my lunch for school.",
+    "Our class planted a small garden.", "The pit crew changed four tires.", "Tom kicked the ball very far.",
+    "Rain fell on the tin roof.", "We cheered for the fastest car.",
+  ],
+  hard: [
+    "After school, Maya raced her bike down the long hill.",
+    "The pit crew changed all four tires in just ten seconds.",
+    "Do you know how many laps are left in this race?",
+    "On Saturday, Leo and his sister built a track in the backyard.",
+    "The fastest car on the track was painted bright yellow and black.",
+    "When the flag waved, every driver pressed the gas pedal at once.",
+    "Texas has big cities, wide deserts, and tall green pine forests.",
+    "If you practice every day, your typing will get faster and faster.",
+    "Can you name three animals that live in the ocean?",
+    "The crowd cheered loudly as the race car crossed the finish line.",
+    "Sofia packed water, crackers, and apples for the long car trip.",
+    "Before the big race, the drivers checked their brakes and lights.",
+    "My favorite part of the day is reading a good book at night.",
+    "How far can a car travel on one full tank of gas?",
+  ],
+};
+
+/* keyboard map: which finger presses each key (standard touch-typing) */
+const KB_ROWS = [
+  ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
+  ["a", "s", "d", "f", "g", "h", "j", "k", "l", ";", "'"],
+  ["z", "x", "c", "v", "b", "n", "m", ",", ".", "/"],
+];
+const FINGER = {
+  q: "lp", a: "lp", z: "lp", w: "lr", s: "lr", x: "lr", e: "lm", d: "lm", c: "lm",
+  r: "li", f: "li", v: "li", t: "li", g: "li", b: "li",
+  y: "ri", h: "ri", n: "ri", u: "ri", j: "ri", m: "ri",
+  i: "rm", k: "rm", ",": "rm", o: "rr", l: "rr", ".": "rr",
+  p: "rp", ";": "rp", "/": "rp", "'": "rp", " ": "th",
+};
+const FINGER_NAME = {
+  lp: "left pinky", lr: "left ring finger", lm: "left middle finger", li: "left pointer finger",
+  ri: "right pointer finger", rm: "right middle finger", rr: "right ring finger", rp: "right pinky", th: "thumb",
+};
+/* which physical key makes a character, and whether Shift is needed */
+function keyFor(ch) {
+  if (ch === " ") return { key: " ", shift: false };
+  if (ch === "?") return { key: "/", shift: true };
+  if (ch === "\"") return { key: "'", shift: true };
+  if (ch === "!") return { key: "1", shift: true };
+  const lo = ch.toLowerCase();
+  return { key: lo, shift: ch !== lo };
+}
+
+function pickSentences(level, n) {
+  const pool = [...TYPE_SENTENCES[level]];
+  for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  return pool.slice(0, n);
+}
+const wpmOf = (chars, ms) => (ms > 0 ? Math.round((chars / 5) / (ms / 60000)) : 0);
+
+function TypeIcon() {
+  return (
+    <svg viewBox="0 0 96 80" aria-hidden="true">
+      <rect x="4" y="22" width="88" height="50" rx="9" fill="#2F6BFF" stroke={INK} strokeWidth="4" />
+      <rect x="4" y="22" width="88" height="10" rx="5" fill="#8FB4FF" opacity=".55" />
+      {[0, 1, 2].map((r) => Array.from({ length: 7 - (r === 2 ? 1 : 0) }).map((_, c) => (
+        <rect key={`${r}${c}`} x={12 + c * 11 + (r === 1 ? 4 : r === 2 ? 9 : 0)} y={30 + r * 11} width="8.5" height="8" rx="2"
+          fill={r === 1 && (c === 3 || c === 4) ? "#FFD21F" : "#fff"} stroke={INK} strokeWidth="1.6" />
+      )))}
+      <rect x="26" y="62" width="44" height="6" rx="2" fill="#fff" stroke={INK} strokeWidth="1.6" />
+      <g transform="translate(62 2)">
+        <line x1="2" y1="0" x2="2" y2="22" stroke={INK} strokeWidth="3" strokeLinecap="round" />
+        <path d="M3 1 L 26 3 L 26 14 L 3 12 Z" fill="#fff" stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
+        <rect x="3" y="1.5" width="5.8" height="5.3" fill={INK} /><rect x="14.5" y="2.3" width="5.8" height="5.3" fill={INK} />
+        <rect x="8.8" y="6.8" width="5.8" height="5.3" fill={INK} /><rect x="20.3" y="7.6" width="5.8" height="5.3" fill={INK} />
+      </g>
+    </svg>
+  );
+}
+
+function OnScreenKeyboard({ next }) {
+  const k = next ? keyFor(next) : null;
+  const shiftSide = k && k.shift ? (FINGER[k.key] || "").startsWith("l") ? "right" : "left" : null;   // use the opposite hand's Shift
+  return (
+    <div className="ty-kb" aria-hidden="true">
+      {KB_ROWS.map((row, r) => (
+        <div key={r} className={`ty-kbrow r${r}`}>
+          {r === 2 && <span className={`ty-key wide ${shiftSide === "left" ? "on" : ""}`}>⇧ Shift</span>}
+          {row.map((c) => (
+            <span key={c} className={`ty-key f-${FINGER[c]} ${k && k.key === c ? "on" : ""} ${c === "f" || c === "j" ? "bump" : ""}`}>{c.toUpperCase()}</span>
+          ))}
+          {r === 2 && <span className={`ty-key wide ${shiftSide === "right" ? "on" : ""}`}>Shift ⇧</span>}
+        </div>
+      ))}
+      <div className="ty-kbrow">
+        <span className={`ty-key space f-th ${k && k.key === " " ? "on" : ""}`}>space</span>
+      </div>
+    </div>
+  );
+}
+
+function TypingGame({ progress, push, go }) {
+  const [level, setLevel] = useState(() => progress.typing?.lastLevel || "easy");
+  const [timed, setTimed] = useState(() => !!progress.typing?.timed);
+  const [phase, setPhase] = useState("setup");        // setup | play | over
+  const [lines, setLines] = useState([]);
+  const [li, setLi] = useState(0);                     // which sentence
+  const [pos, setPos] = useState(0);                   // cursor inside the sentence
+  const [right, setRight] = useState(0);
+  const [wrong, setWrong] = useState(0);
+  const [missed, setMissed] = useState({});            // character -> times missed
+  const [flash, setFlash] = useState(0);               // bumps on every wrong key (restarts the shake)
+  const [lastWrong, setLastWrong] = useState("");
+  const [lineDone, setLineDone] = useState(false);
+  const [focused, setFocused] = useState(true);
+  const [now, setNow] = useState(0);
+  const [showCheer, setShowCheer] = useState(true);
+  const [beat, setBeat] = useState(null);
+  const inputRef = useRef(null);
+  const timeRef = useRef({ total: 0, lineStart: 0, chars: 0 });
+  const saved = useRef(false);
+  const lv = TYPE_LEVELS.find((l) => l.id === level) || TYPE_LEVELS[0];
+  const stats = progress.typing || {};
+  const best = stats[level] || {};
+
+  const target = lines[li] || "";
+  const totalChars = lines.reduce((n, s) => n + s.length, 0);
+  const doneChars = lines.slice(0, li).reduce((n, s) => n + s.length, 0) + pos;
+  const keysPressed = right + wrong;
+  const acc = keysPressed ? Math.round((right / keysPressed) * 100) : 100;
+  const elapsed = timeRef.current.total + (timeRef.current.lineStart && phase === "play" && !lineDone ? now - timeRef.current.lineStart : 0);
+  const liveWpm = wpmOf(timeRef.current.chars + pos, elapsed);
+
+  /* live clock while typing (only matters when the clock is on) */
+  useEffect(() => {
+    if (phase !== "play" || !timed) return undefined;
+    const id = setInterval(() => setNow(performance.now()), 250);
+    return () => clearInterval(id);
+  }, [phase, timed]);
+
+  const focusBox = () => { if (inputRef.current) inputRef.current.focus({ preventScroll: true }); };
+  useEffect(() => { if (phase === "play") setTimeout(focusBox, 50); }, [phase, li]);
+
+  const start = () => {
+    saved.current = false;
+    setLines(pickSentences(level, lv.rounds));
+    setLi(0); setPos(0); setRight(0); setWrong(0); setMissed({}); setLastWrong(""); setLineDone(false);
+    setBeat(null); setShowCheer(true);
+    timeRef.current = { total: 0, lineStart: 0, chars: 0 };
+    setPhase("play");
+  };
+
+  /* every keystroke arrives through the (invisible) text box, so phones and tablets work too */
+  const onType = (e) => {
+    const val = e.target.value;
+    if (lineDone || phase !== "play") return;
+    const typed = target.slice(0, pos);
+    if (val.length <= typed.length) return;             // Backspace does nothing — no need to fix
+    const added = val.slice(typed.length);
+    let p = pos, r = 0, w = 0; const miss = { ...missed }; let lw = "";
+    for (const ch of added) {
+      if (p >= target.length) break;
+      if (!timeRef.current.lineStart) timeRef.current.lineStart = performance.now();
+      const want = target[p];
+      const ok = ch === want || (!lv.caps && ch.toLowerCase() === want.toLowerCase());
+      if (ok) { p++; r++; }
+      else { w++; miss[want] = (miss[want] || 0) + 1; lw = ch; }
+    }
+    if (r) setRight((n) => n + r);
+    if (w) { setWrong((n) => n + w); setMissed(miss); setFlash((f) => f + 1); setLastWrong(lw); }
+    else setLastWrong("");
+    setPos(p);
+    if (p >= target.length) {
+      const tr = timeRef.current;
+      tr.total += performance.now() - (tr.lineStart || performance.now());
+      tr.lineStart = 0;
+      tr.chars += target.length;
+      setNow(performance.now());
+      setLineDone(true);
+      setTimeout(() => {
+        setLineDone(false);
+        if (li + 1 >= lines.length) setPhase("over");
+        else { setLi(li + 1); setPos(0); setLastWrong(""); }
+      }, 650);
+    }
+  };
+
+  /* save once when the round ends */
+  useEffect(() => {
+    if (phase !== "over" || saved.current) return;
+    saved.current = true;
+    const ms = timeRef.current.total;
+    const wpm = timed ? wpmOf(timeRef.current.chars, ms) : null;
+    const prev = (progress.typing || {})[level] || {};
+    const rec = {
+      runs: (prev.runs || 0) + 1,
+      bestAcc: Math.max(prev.bestAcc || 0, acc),
+      bestWpm: wpm !== null ? Math.max(prev.bestWpm || 0, wpm) : (prev.bestWpm || 0),
+      lastAcc: acc,
+      lastWpm: wpm !== null ? wpm : (prev.lastWpm ?? null),
+    };
+    const newAcc = prev.runs && acc > (prev.bestAcc || 0);
+    const newWpm = wpm !== null && prev.bestWpm && wpm > prev.bestWpm;
+    if (newWpm) setBeat(`${wpm} words per minute — your fastest yet!`);
+    else if (newAcc) setBeat(`${acc}% accurate — your best yet on ${lv.name}!`);
+    const history = [...((progress.typing || {}).history || []), { lv: level, acc, wpm, ts: Date.now() }].slice(-30);
+    const p = {
+      ...progress,
+      sessions: (progress.sessions || 0) + 1,        // counts as a finished activity for car parts
+      typing: { ...(progress.typing || {}), [level]: rec, history, lastLevel: level, timed },
+      badges: awardBadge(progress, `typing_${level}`, acc),
+    };
+    push(p);
+  }, [phase]); // eslint-disable-line
+
+  /* ---- setup ---- */
+  if (phase === "setup") {
+    return (
+      <div className="stack">
+        <div className="hero ty-hero">
+          <span className="ty-heroicon"><TypeIcon /></span>
+          <div>
+            <h1>Typing Speedway</h1>
+            <p className="lede" style={{ color: "#4A5764", margin: 0 }}>
+              Type each sentence to drive your car to the finish line. Go for the right keys first. Speed comes with practice.
+            </p>
+          </div>
+        </div>
+
+        <div className="card ty-tip">
+          <b>Start on the home row</b>
+          <p>Rest your pointer fingers on <kbd>F</kbd> and <kbd>J</kbd>. Feel the little bumps? Your other fingers line up next to them.
+            Use your thumb for the space bar.</p>
+        </div>
+
+        <h3 style={{ margin: "6px 0 0", fontSize: 19 }}>Pick a level</h3>
+        <div className="stack">
+          {TYPE_LEVELS.map((l) => {
+            const b = stats[l.id];
+            return (
+              <button key={l.id} className={`stop ${level === l.id ? "done" : ""}`} onClick={() => setLevel(l.id)} aria-pressed={level === l.id}>
+                <span className="badge">{level === l.id ? "✅" : l.id === "easy" ? "1" : l.id === "moderate" ? "2" : "3"}</span>
+                <span className="t">
+                  <b>{l.name}</b>
+                  <span className="small">{l.note} · like “{l.eg}”{!l.caps ? " · capital letters optional" : ""}</span>
+                  {b && b.runs ? (
+                    <span className="small ty-best">Best: {b.bestAcc}% accurate{b.bestWpm ? ` · ${b.bestWpm} WPM` : ""} · {b.runs} {b.runs === 1 ? "run" : "runs"}</span>
+                  ) : null}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        <label className={`ty-toggle ${timed ? "on" : ""}`}>
+          <input type="checkbox" checked={timed} onChange={(e) => setTimed(e.target.checked)} />
+          <span className="ty-switch" aria-hidden="true"><i /></span>
+          <span>
+            <b>⏱ Time me</b>
+            <span className="small">Show how many words per minute (WPM) I type. Leave it off to just practice.</span>
+          </span>
+        </label>
+
+        <div className="footer"><div className="in">
+          <button className="btn ghost" onClick={() => go({ name: "map" })}>Back</button>
+          <button className="btn gold" onClick={start}>🏁 Start typing</button>
+        </div></div>
+      </div>
+    );
+  }
+
+  /* ---- results ---- */
+  if (phase === "over") {
+    const badge = badgeTier(acc);
+    const wpm = timed ? wpmOf(timeRef.current.chars, timeRef.current.total) : null;
+    const tricky = Object.entries(missed).sort((a, b) => b[1] - a[1]).slice(0, 8);
+    const nextLv = TYPE_LEVELS[TYPE_LEVELS.findIndex((l) => l.id === level) + 1];
+    return (
+      <div className="stack">
+        {beat && showCheer && <Cheer emoji="⌨️" title="NEW RECORD!" sub={beat} onClose={() => setShowCheer(false)} />}
+        <div className="stamp card">
+          <div className="big">{acc >= 95 ? "🏆" : acc >= 80 ? "🏁" : "🔧"}</div>
+          <h1 style={{ fontSize: 32, margin: "8px 0" }}>{acc}% accurate</h1>
+          <div className="badgechip">{badge.emoji} {badge.label} badge earned!</div>
+          <div className="ty-results">
+            <div><b>{right}</b><span>keys right</span></div>
+            <div><b className="r">{wrong}</b><span>missed keys</span></div>
+            {wpm !== null && <div><b>{wpm}</b><span>words per minute</span></div>}
+            {wpm !== null && <div><b>{fmtClock(timeRef.current.total / 1000)}</b><span>typing time</span></div>}
+          </div>
+          <p className="lede" style={{ color: "#4A5764", margin: "10px 0 0" }}>
+            {acc >= 95 ? "Super clean typing!" : acc >= 80 ? "Nice driving! A few bumps along the way." : "Slow down a little and look for each key. Accuracy first, then speed."}
+            {acc >= 90 && nextLv ? ` You're ready to try ${nextLv.name}.` : ""}
+          </p>
+        </div>
+        {tricky.length > 0 && (
+          <div className="card stack">
+            <h3 style={{ margin: 0, fontSize: 19 }}>Keys to practice</h3>
+            <p className="small" style={{ margin: 0 }}>These keys were missed this run. Find them on the keyboard before the next race.</p>
+            <div className="wordlist">
+              {tricky.map(([c, n]) => (
+                <span key={c} className="chip ty-chip"><kbd>{c === " " ? "space" : c}</kbd> <b className="r">×{n}</b>
+                  <span className="small">{FINGER_NAME[FINGER[keyFor(c).key]] || ""}</span></span>
+              ))}
+            </div>
+          </div>
+        )}
+        <div className="btnrow">
+          <button className="btn gold" onClick={start}>🔁 Type again</button>
+          {acc >= 90 && nextLv && <button className="btn" onClick={() => { setLevel(nextLv.id); setPhase("setup"); }}>Try {nextLv.name}</button>}
+          <button className="btn ghost" onClick={() => setPhase("setup")}>Change level</button>
+          <button className="btn ghost" onClick={() => go({ name: "map" })}>Home</button>
+        </div>
+      </div>
+    );
+  }
+
+  /* ---- typing ---- */
+  const next = lineDone ? null : target[pos];
+  const nk = next ? keyFor(next) : null;
+  const pct = totalChars ? (doneChars / totalChars) * 100 : 0;
+  return (
+    <div className="stack">
+      <div className="ty-road" aria-hidden="true">
+        <span className="ty-lane" />
+        <span className="ty-flag" />
+        <span className="ty-car" style={{ left: `calc(${pct}% * 0.9)` }}>
+          <svg viewBox="0 0 64 30"><path d="M4 22 L 6 14 Q 8 11 14 10 L 22 5 Q 26 3 34 3 L 42 4 Q 48 6 52 11 L 60 13 Q 62 14 62 18 L 61 22 Z" fill={progress.car?.color || "#1B62E8"} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
+            <path d="M24 7 L 33 5 L 40 6 L 44 11 L 22 11 Z" fill="#BFE0FF" stroke={INK} strokeWidth="1.6" />
+            <circle cx="17" cy="23" r="5.5" fill="#1d2027" stroke={INK} strokeWidth="2" /><circle cx="17" cy="23" r="2" fill="#ccd" />
+            <circle cx="50" cy="23" r="5.5" fill="#1d2027" stroke={INK} strokeWidth="2" /><circle cx="50" cy="23" r="2" fill="#ccd" /></svg>
+        </span>
+      </div>
+
+      <div className="smbar ty-bar">
+        <span className="pill">Sentence {Math.min(li + 1, lines.length)} of {lines.length}</span>
+        <span className={`pill ${acc >= 90 ? "ok" : acc >= 75 ? "" : "no"}`}>🎯 {acc}% accurate</span>
+        {timed && <span className="pill timer">⏱ {fmtClock(elapsed / 1000)}</span>}
+        {timed && <span className="pill gold">⚡ {liveWpm} WPM</span>}
+        <button className="pill tap" onClick={() => { speak(target, 0.85); focusBox(); }} aria-label="Read the sentence out loud">🔊 Hear it</button>
+      </div>
+
+      <div className={`ty-board ${lineDone ? "done" : ""}`} onClick={focusBox}>
+        <p className="ty-line" aria-label={target}>
+          {target.split("").map((c, i) => {
+            const cls = i < pos ? "ok" : i === pos && !lineDone ? `cur ${flash && lastWrong ? "bad" : ""}` : "todo";
+            return (
+              <span key={i === pos ? `c${i}-${flash}` : i} className={`ty-ch ${cls} ${c === " " ? "sp" : ""}`}>
+                {c === " " ? (i === pos && !lineDone ? "␣" : "\u00A0") : c}
+              </span>
+            );
+          })}
+        </p>
+        <p className="ty-help" role="status" aria-live="polite">
+          {lineDone ? "✓ Nice! Next sentence…" :
+            lastWrong ? `Oops — that was “${lastWrong === " " ? "space" : lastWrong}”. Find ${nk.shift ? "Shift + " : ""}${nk.key === " " ? "the space bar" : `the ${nk.key.toUpperCase()} key`} (${FINGER_NAME[FINGER[nk.key]] || "any finger"}).` :
+            nk ? `Next: ${nk.key === " " ? "space bar" : `${nk.shift ? "Shift + " : ""}${nk.key.toUpperCase()}`} · ${FINGER_NAME[FINGER[nk.key]] || "any finger"}` : ""}
+        </p>
+        <input ref={inputRef} className="ty-input" value={target.slice(0, pos)} onChange={onType}
+          onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
+          autoCapitalize="off" autoCorrect="off" autoComplete="off" spellCheck={false} aria-label="Type the sentence here" />
+        {!focused && !lineDone && <button className="ty-refocus" onClick={focusBox}>Tap here to keep typing</button>}
+      </div>
+
+      <OnScreenKeyboard next={next} />
+      <div className="ty-legend" aria-hidden="true">
+        <span className="f-lp">Pinky</span><span className="f-lr">Ring</span><span className="f-lm">Middle</span>
+        <span className="f-li">Pointer</span><span className="f-th">Thumb</span>
+      </div>
+
+      <div className="footer"><div className="in">
+        <button className="btn ghost" onClick={() => setPhase("over")} disabled={keysPressed === 0}>Stop</button>
+        <button className="btn ghost" onClick={() => setPhase("setup")}>Change level</button>
+      </div></div>
     </div>
   );
 }
@@ -4382,7 +5502,7 @@ function SpeedMath({ progress, push, go }) {
   );
 }
 
-/* ---------------- collection: stats + every brick ---------------- */
+/* ---------------- collection: stats + every trophy ---------------- */
 /* Sprint (worksheet drill) records live in their own storage key so the main
    progress save never overwrites them. The 🏁 Sprint panel writes them. */
 const SPRINT_KEY = "brickdash-sprints-v1";
@@ -4450,20 +5570,21 @@ function Collection({ progress, push, go }) {
   return (
     <div className="stack">
       <div className="hero">
-        <h1>🧱 Your collection</h1>
+        <h1>🏆 Your trophy case</h1>
         <p className="lede" style={{ color: "#4A5764", margin: 0 }}>
-          Everything you've built so far. Bricks stay saved, even if you close the app.
+          Everything you've won so far. Trophies stay saved, even if you close the app.
         </p>
       </div>
 
       <div className="stats">
-        <div className="stat"><b>{mastered}</b><span>of {CONCEPTS.length} bricks</span></div>
+        <div className="stat"><b>{mastered}</b><span>of {CONCEPTS.length} trophies</span></div>
         <div className="stat"><b>{zonesCleared}</b><span>of 6 zones cleared</span></div>
         <div className="stat"><b>{progress.correct || 0}</b><span>questions right</span></div>
         <div className="stat"><b>{acc}%</b><span>correct overall</span></div>
         <div className="stat"><b>{progress.bestTimed || 0}</b><span>best Speed Run</span></div>
         <div className="stat"><b>{fastestSprint ? fmtClock(fastestSprint.bestSec) : "—"}</b><span>best Sprint time</span></div>
         <div className="stat"><b>{progress.driveBestCoins || 0}</b><span>most coins in one drive</span></div>
+        <div className="stat"><b>{progress.raceWins || 0}</b><span>races won ({progress.races || 0} raced)</span></div>
         <div className="stat"><b>{Object.keys(progress.seen || {}).length}</b><span>stops tried</span></div>
         <div className="stat"><b>{Object.keys(progress.words || {}).length}</b><span>sight words spelled</span></div>
       </div>
@@ -4510,6 +5631,55 @@ function Collection({ progress, push, go }) {
         </p>
       )}
 
+      <h3 style={{ margin: "16px 0 0", fontSize: 21 }}>⌨️ Typing Speedway</h3>
+      {(() => {
+        const ty = progress.typing || {};
+        const rows = TYPE_LEVELS.filter((l) => ty[l.id] && ty[l.id].runs);
+        if (!rows.length) return <p className="small" style={{ margin: 0 }}>No typing runs yet. Find Typing Speedway under More ways to play.</p>;
+        const recent = (ty.history || []).slice(-8).reverse();
+        return (
+          <>
+            <div className="table">
+              <div className="tr th"><span>Level</span><span>Best accuracy</span><span>Best WPM</span><span>Last run</span></div>
+              {rows.map((l) => {
+                const d = ty[l.id];
+                return (
+                  <div className="tr" key={l.id}>
+                    <span>{l.name} · {d.runs} {d.runs === 1 ? "run" : "runs"}</span>
+                    <span className="g"><b>{d.bestAcc}%</b></span>
+                    <span>{d.bestWpm ? d.bestWpm : "—"}</span>
+                    <span>{d.lastAcc}%{d.lastWpm ? ` · ${d.lastWpm} WPM` : ""}</span>
+                  </div>
+                );
+              })}
+            </div>
+            {recent.length > 1 && (
+              <p className="small" style={{ margin: "6px 0 0" }}>
+                Recent runs (newest first): {recent.map((h) => `${h.acc}%${h.wpm ? `/${h.wpm}wpm` : ""}`).join(", ")}
+              </p>
+            )}
+          </>
+        );
+      })()}
+
+      <h3 style={{ margin: "16px 0 0", fontSize: 21 }}>🏁 Figure-8 race best times</h3>
+      {(() => {
+        const rb = progress.raceBest || {};
+        const rows = RACE_LEVELS.filter((l) => rb[l.id]);
+        if (!rows.length) return <p className="small" style={{ margin: 0 }}>No races yet. Tap Drive my car, then pick the Figure-8 Race.</p>;
+        return (
+          <div className="table">
+            <div className="tr th"><span>Level</span><span>Best time</span><span>Place</span><span></span></div>
+            {rows.map((l) => (
+              <div className="tr" key={l.id}>
+                <span>{l.name}</span><span><b>{fmtRace(rb[l.id].time)}</b></span>
+                <span>{placeWord(rb[l.id].place)}</span><span>{rb[l.id].place === 1 ? "🏆" : ""}</span>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
+
       <h3 style={{ margin: "16px 0 0", fontSize: 21 }}>Every stop</h3>
       {REGIONS.map((r) => {
         const cs = conceptsIn(r.id);
@@ -4522,9 +5692,9 @@ function Collection({ progress, push, go }) {
                 const best = progress.best?.[c.id];
                 const st = (progress.stop || {})[c.id] || { right: 0, wrong: 0, runs: 0 };
                 return (
-                  <button key={c.id} className={`brick ${got ? "got" : ""}`} style={{ "--rc": r.rc }}
+                  <button key={c.id} className={`trophy ${got ? "got" : ""}`} style={{ "--rc": r.rc }}
                     onClick={() => go({ name: "concept", cid: c.id })}>
-                    <span className="bi">{got ? "🧱" : c.icon}</span>
+                    <span className="bi">{got ? "🏆" : c.icon}</span>
                     <span className="bt">{c.title}</span>
                     <span className="bs">
                       {got ? "Collected" : best !== undefined ? `Best ${best}/5 — try again` : "Not started"}
@@ -4576,7 +5746,7 @@ function Collection({ progress, push, go }) {
       <div className="card stack" style={{ marginTop: 14 }}>
         <h3 style={{ margin: 0, fontSize: 19 }}>Start over</h3>
         <p className="small" style={{ margin: 0 }}>
-          Clears every brick and all scores. There's no undo.
+          Clears every trophy and all scores. There's no undo.
         </p>
         {confirmReset ? (
           <div className="btnrow">
@@ -4584,7 +5754,7 @@ function Collection({ progress, push, go }) {
               onClick={() => { push({ ...blank }); saveSprintRecords({}); setSprints({}); setConfirmReset(false); go({ name: "map" }); }}>
               Yes, erase everything
             </button>
-            <button className="btn ghost" onClick={() => setConfirmReset(false)}>Keep my bricks</button>
+            <button className="btn ghost" onClick={() => setConfirmReset(false)}>Keep my trophies</button>
           </div>
         ) : (
           <button className="btn ghost" onClick={() => setConfirmReset(true)}>Reset progress</button>
@@ -4704,7 +5874,7 @@ const stopSpeech = () => { try { if (window.speechSynthesis) window.speechSynthe
 function RegionView({ rid, progress, go }) {
   const r = REGIONS.find((x) => x.id === rid);
   const cs = conceptsIn(rid);
-  const bricks = cs.filter((c) => progress.mastered?.[c.id]).length;
+  const trophies = cs.filter((c) => progress.mastered?.[c.id]).length;
   return (
     <div className="zn stack" style={{ "--rc": r.rc, "--rcfg": r.fg || "#fff" }}>
       <header className="zn-head">
@@ -4724,7 +5894,7 @@ function RegionView({ rid, progress, go }) {
           <dl className="zn-facts">
             <div><dt>Learn zone</dt><dd>{r.icon} {r.name}</dd></div>
             <div><dt>Topic</dt><dd>{r.sub}</dd></div>
-            <div><dt>Bricks</dt><dd>🧱 {bricks} of {cs.length} earned</dd></div>
+            <div><dt>Trophies</dt><dd>🏆 {trophies} of {cs.length} earned</dd></div>
           </dl>
           <h3>What you'll do</h3>
           <ol className="zn-do">
@@ -4754,7 +5924,7 @@ function RegionView({ rid, progress, go }) {
               const done = !!progress.mastered?.[c.id];
               const tried = !!progress.seen?.[c.id];
               const best = progress.best?.[c.id] || 0;
-              const status = done ? ["done", "🧱 Brick earned"] : tried ? ["tried", `Best: ${best} of ${c.qs.length}`] : ["new", "New lesson"];
+              const status = done ? ["done", "🏆 Trophy earned"] : tried ? ["tried", `Best: ${best} of ${c.qs.length}`] : ["new", "New lesson"];
               const cta = done ? "Play again" : tried ? "Try again" : "Start lesson";
               return (
                 <button key={c.id} className={`zn-card ${status[0]}`} onClick={() => go({ name: "concept", cid: c.id })}>
@@ -4831,7 +6001,7 @@ function ConceptView({ cid, progress, push, go, onWord }) {
             <div className="ls-panel">
               <h3>🏅 Skills you will earn</h3>
               <ul className="ls-skills">{ov.skills.map((s) => <li key={s}>{s}</li>)}</ul>
-              <p className="ls-note">Score 80% or higher on the questions to earn this stop's 🧱 brick.</p>
+              <p className="ls-note">Score 80% or higher on the questions to earn this stop's 🏆 trophy.</p>
             </div>
           </div>
         </section>
@@ -5034,23 +6204,23 @@ function Practice({ concept, questions, onWord, onDone, goBack, reteach, timed, 
       <div className="stack">
         {cheer && (
           <Cheer
-            emoji={perfect ? "🧱" : null}
-            sub={`${concept ? concept.title : "Stop"} — ${score} out of ${questions.length} (${pct}%). Brick collected!`}
+            emoji={perfect ? "🏆" : null}
+            sub={`${concept ? concept.title : "Stop"} — ${score} out of ${questions.length} (${pct}%). Trophy won!`}
             onClose={() => setCheer(false)}
           />
         )}
         <div className="stamp card">
-          <div className="big">{perfect ? "🧱" : score > questions.length / 2 ? "⚡" : "🔧"}</div>
+          <div className="big">{perfect ? "🏆" : score > questions.length / 2 ? "⚡" : "🔧"}</div>
           <h1 style={{ fontSize: 30, margin: "8px 0" }}>
             {perfect ? "Stop cleared!" : `${score} out of ${questions.length} — ${pct}%`}
           </h1>
           <div className="badgechip">{badge.emoji} {badge.label} badge earned!</div>
           <p className="lede" style={{ color: "#4A5764", margin: 0 }}>
             {perfect
-              ? "Every single one. Brick collected."
+              ? "Every single one. Trophy won."
               : score >= passThreshold(questions.length)
-              ? "Brick collected — strong run, 80% or higher earns it!"
-              : `You're getting it. Reread the steps in stage 2, then run these again — ${passThreshold(questions.length)} out of ${questions.length} (80%) earns the brick.`}
+              ? "Trophy won — strong run, 80% or higher earns it!"
+              : `You're getting it. Reread the steps in stage 2, then run these again — ${passThreshold(questions.length)} out of ${questions.length} (80%) earns the trophy.`}
           </p>
         </div>
         {onDrive && (
