@@ -8,6 +8,16 @@ import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment
    ============================================================ */
 
 const CSS = `
+/* while driving, hide the floating Sprint button (it sat on top of the drive controls) */
+body.bd-driving .bd-fab-wrap { display:none !important; }
+.dq-goal { font-family:var(--ui); font-weight:800; font-size:16px; background:#FEF3CE; border:2px solid #F5C518;
+  border-radius:12px; padding:8px 12px; color:var(--ink); }
+.dq-goal.retry { background:#EEE6FF; border-color:#8B3FD6; }
+.dq-promptrow { display:flex; align-items:flex-start; gap:8px; }
+.dq-promptrow .prompt { flex:1; margin:0; }
+.dq-say { flex:none; border:2px solid var(--line); background:#fff; border-radius:12px; font-size:20px; padding:6px 10px; cursor:pointer; }
+.dq-answers.reading { opacity:.45; pointer-events:none; filter:grayscale(.4); }
+.dq-fast { font-weight:800; color:#9E2519; }
 /* Only system fonts plus the bundled Nunito are used. No external requests. */
 
 .tt * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -3213,6 +3223,393 @@ function buildCarModel({ have, picks = {}, bodyColor = "#1B62E8", name = "RACER"
   return { carGroup, wheels, flame, flagMesh };
 }
 
+/* ============================================================
+   DRIVE QUESTION BANK
+   Questions for the races and the Coin Arena. Most math topics are
+   generated fresh each time (new numbers), so the same question
+   almost never repeats. Topics come from real class worksheets:
+   rounding (10 and 100), estimating, 3-digit add and subtract,
+   bar-model word problems, repeated addition and equal groups,
+   expanded notation, place value, VCe and open/closed syllables,
+   contractions, point of view, and states of matter.
+   ============================================================ */
+const qr = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const qpick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+const qshuffle = (arr) => {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+};
+const qhash = (str) => { let h = 5381; for (let i = 0; i < str.length; i++) h = ((h * 33) ^ str.charCodeAt(i)) >>> 0; return h.toString(36); };
+const qn = (n) => Number(n).toLocaleString("en-US");
+/* multiple choice with the right answer in a random spot; wrong choices that match the right one are dropped */
+function qmc(prompt, right, wrongs, hint, exp) {
+  const uniq = [];
+  wrongs.forEach((w) => { if (String(w) !== String(right) && !uniq.some((u) => String(u) === String(w))) uniq.push(w); });
+  const options = qshuffle([right, ...uniq.slice(0, 3)]).map(String);
+  return { type: "mc", prompt, options, a: options.indexOf(String(right)), hint, exp };
+}
+const qentry = (prompt, a, hint, exp) => ({ type: "entry", prompt, a, hint, exp });
+
+/* ---------- rounding ---------- */
+function genRound10() {
+  const n = Math.random() < 0.5 ? qr(11, 99) : qr(101, 989);
+  const ones = n % 10;
+  if (ones === 0) return genRound10();
+  const down = n - ones, up = down + 10, ans = ones >= 5 ? up : down;
+  const why = ones >= 5
+    ? `The ones digit is ${ones}. That's 5 or more, so the tens go up one: ${qn(ans)}.`
+    : `The ones digit is ${ones}. That's less than 5, so the tens digit stays the same, and the ones become 0: ${qn(ans)}.`;
+  const exp = `${why} A rounded number always ends in 0 — so ${qn(n)} itself can't be the answer. On a number line, ${qn(n)} sits between ${qn(down)} and ${qn(up)} and is closer to ${qn(ans)}.`;
+  const hint = "Underline the tens digit. Look at the ones digit next door. 5 or more? Go up. Less than 5? Stay.";
+  if (Math.random() < 0.5) return qentry(`Round ${qn(n)} to the nearest 10.`, ans, hint, exp);
+  return qmc(`Round ${qn(n)} to the nearest 10.`, qn(ans), [qn(n), qn(ones >= 5 ? down : up), qn(Math.round(n / 100) * 100), qn(ans + 10)], hint, exp);
+}
+function genRound100() {
+  const n = Math.random() < 0.7 ? qr(110, 989) : qr(1010, 5980);
+  const rest = n % 100;
+  if (rest === 0 || rest === 50) return genRound100();
+  const tens = Math.floor(rest / 10);
+  const down = n - rest, up = down + 100, ans = tens >= 5 ? up : down;
+  const why = tens >= 5
+    ? `Look at the tens digit: ${tens}. That's 5 or more, so the hundreds go up one: ${qn(ans)}.`
+    : `Look at the tens digit: ${tens}. That's less than 5, so the hundreds digit stays the same, and the tens and ones become 0: ${qn(ans)}.`;
+  const exp = `${why} Rounding to the nearest 100 always ends in 00 — ${qn(n)} itself is never the answer.`;
+  const hint = "Underline the hundreds digit. Look at the TENS digit next door. 5 or more? Go up. Less than 5? Stay.";
+  if (Math.random() < 0.5) return qentry(`Round ${qn(n)} to the nearest 100.`, ans, hint, exp);
+  return qmc(`Round ${qn(n)} to the nearest 100.`, qn(ans), [qn(n), qn(tens >= 5 ? down : up), qn(Math.round(n / 10) * 10), qn(ans + 100)], hint, exp);
+}
+function genEstimate() {
+  const to100 = Math.random() < 0.6, unit = to100 ? 100 : 10;
+  const r = (x) => Math.round(x / unit) * unit;
+  const add = Math.random() < 0.55;
+  let a = qr(120, 880), b = qr(110, 480);
+  if (!add && b > a) [a, b] = [b, a];
+  if (a % unit === unit / 2 || b % unit === unit / 2) return genEstimate();
+  const ra = r(a), rb = r(b), ans = add ? ra + rb : ra - rb;
+  const sign = add ? "+" : "−";
+  const exp = `Round first, then do the math. ${qn(a)} rounds to ${qn(ra)} and ${qn(b)} rounds to ${qn(rb)}. Then ${qn(ra)} ${sign} ${qn(rb)} = ${qn(ans)}. The exact answer would be ${qn(add ? a + b : a - b)} — an estimate is the friendly-number version.`;
+  return qentry(`Estimate ${qn(a)} ${sign} ${qn(b)} by rounding each number to the nearest ${unit}.`, ans,
+    `Round ${qn(a)} and ${qn(b)} to the nearest ${unit} first. Then ${add ? "add" : "subtract"}.`, exp);
+}
+
+/* ---------- adding and subtracting word problems ---------- */
+const ADD_STORIES = [
+  (a, b) => [`A zoo rescued ${a} animals last year and ${b} animals this year. How many animals were rescued in the two years?`, "in all"],
+  (a, b) => [`One baby giraffe weighs ${a} pounds. Another weighs ${b} pounds. What is their combined weight in pounds?`, "combined"],
+  (a, b) => [`There are ${a} snakes and ${b} birds living at the zoo. How many snakes and birds are there?`, "together"],
+  (a, b) => [`A school library has ${a} books. It receives ${b} new books. How many books does it have now?`, "receives"],
+  (a, b) => [`A store had ${a} pencils. It received ${b} more pencils. How many pencils does the store have now?`, "received more"],
+];
+const SUB_STORIES = [
+  (a, b) => [`There were ${a} cows on the farm. After ${b} of them were taken away, how many cows were left?`, "taken away"],
+  (a, b) => [`There are ${a} red ants and ${b} black ants in the colony. How many more red ants are there than black ants?`, "how many more"],
+  (a, b) => [`The painters bought ${b} paint rollers in winter and ${a} in summer. How many fewer rollers did they buy in winter than in summer?`, "how many fewer"],
+  (a, b) => [`A factory made ${a} headbands in June and ${b} fewer in July. How many headbands did it make in July?`, "fewer"],
+];
+function genAddSub() {
+  if (Math.random() < 0.5) {
+    const a = qr(115, 489), b = qr(108, 469);
+    const [prompt, key] = qpick(ADD_STORIES)(a, b);
+    return qentry(prompt, a + b, `The words "${key}" mean put the groups together. Add.`,
+      `${a} + ${b} = ${a + b}. Line up the ones, tens, and hundreds, and remember to regroup when a column adds up to 10 or more.`);
+  }
+  const a = qr(320, 960), b = qr(105, a - 110);
+  const [prompt, key] = qpick(SUB_STORIES)(a, b);
+  return qentry(prompt, a - b, `The words "${key}" mean find the difference. Subtract the smaller number from the bigger one.`,
+    `${a} − ${b} = ${a - b}. Check it backwards: ${a - b} + ${b} = ${a}. ✓`);
+}
+function genTwoStep() {
+  const k = qr(0, 2);
+  if (k === 0) {
+    const books = qr(310, 520), got = qr(105, 240), gave = qr(45, 99);
+    return qentry(`A school library has ${books} books. The library receives ${got} new books and then gives away ${gave} books. How many books does the library have now?`,
+      books + got - gave, "Two steps. First add the new books. Then take away the books given away.",
+      `Step 1: ${books} + ${got} = ${books + got}. Step 2: ${books + got} − ${gave} = ${books + got - gave} books.`);
+  }
+  if (k === 1) {
+    const mon = qr(180, 320), more = qr(40, 95);
+    return qentry(`A farmer picked ${mon} tomatoes on Monday. He picked ${more} more tomatoes on Tuesday than on Monday. How many tomatoes did he pick in total?`,
+      mon + mon + more, "Find Tuesday first (Monday plus the extra). Then add both days.",
+      `Tuesday: ${mon} + ${more} = ${mon + more}. Total: ${mon} + ${mon + more} = ${mon * 2 + more}. The trap answer is ${mon + more}, which is only Tuesday.`);
+  }
+  const j = qr(210, 340), jl = qr(250, 360), au = qr(200, 330);
+  return qentry(`A zoo got $${j} in June, $${jl} in July, and $${au} in August. How many dollars did the zoo get in all three months?`,
+    j + jl + au, "Add two months first, then add the third.",
+    `${j} + ${jl} = ${j + jl}. Then ${j + jl} + ${au} = ${j + jl + au} dollars.`);
+}
+function genBarModel() {
+  const k = qr(0, 1);
+  if (k === 0) {
+    const start = qr(105, 260), came = qr(101, 190);
+    return qentry(`There were some bats under a bridge. ${came} more bats flew in. Now there are ${start + came} bats. How many bats were there to start?`,
+      start, "Draw a bar. The whole is the total now. One part is the bats that flew in. Find the other part.",
+      `The whole bar is ${start + came}. One part is ${came}. The missing part is ${start + came} − ${came} = ${start}.`);
+  }
+  const total = qr(420, 900), part = qr(120, total - 150);
+  return qmc(`Marco had ${total} stickers. He gave some away and has ${part} left. Which equation finds how many he gave away?`,
+    `${total} − ${part} = ?`, [`${total} + ${part} = ?`, `${part} − ${total} = ?`, `? − ${part} = ${total}`],
+    "The whole is what he started with. One part is what's left. You're looking for the other part.",
+    `Start with the whole (${total}) and take away the part that's left (${part}): ${total} − ${part} = ${total - part}. Adding would make the number bigger, but he gave stickers away.`);
+}
+
+/* ---------- multiplying as equal groups ---------- */
+function genRepAdd() {
+  const k = qr(0, 3);
+  const g = qr(2, 6), n = qr(2, 7);
+  if (k === 0) {
+    const sum = Array(g).fill(n).join(" + ");
+    return qmc(`Which multiplication sentence means the same as ${sum}?`,
+      `${g} × ${n} = ${g * n}`, [`${n} × ${n} = ${n * n}`, `${g} + ${n} = ${g + n}`, `${g} × ${n + 1} = ${g * (n + 1)}`, `${n} × 1 = ${n}`],
+      "Count how many times the number is added. That's the number of groups.",
+      `${sum} adds ${n} a total of ${g} times, so it's ${g} groups of ${n}: ${g} × ${n} = ${g * n}.`);
+  }
+  if (k === 1) {
+    const sum = Array(g).fill(n).join(" + ");
+    return qentry(`${sum} = ?`, g * n, `Count the ${n}s. There are ${g} of them. Skip-count by ${n}.`,
+      `There are ${g} groups of ${n}. Skip-count: ${Array.from({ length: g }, (_, i) => n * (i + 1)).join(", ")}. So it's ${g * n} (the same as ${g} × ${n}).`);
+  }
+  if (k === 2) {
+    return qentry(`${g} groups of ${n}. How many in all?`, g * n, `${g} groups with ${n} in each. Multiply ${g} × ${n}.`,
+      `${g} groups of ${n} is ${g} × ${n} = ${g * n}. You can check with repeated addition: ${Array(g).fill(n).join(" + ")} = ${g * n}.`);
+  }
+  const items = qpick([["jars of pickles", "box"], ["miles", "day"], ["wheels", "car"], ["crayons", "pack"], ["cookies", "plate"]]);
+  const each = qr(3, 6), how = qr(2, 5);
+  const prompt = items[1] === "day"
+    ? `Each day, Jani rides her bike ${each} miles. How many miles does she ride in ${how} days?`
+    : `There are ${each} ${items[0]} in each ${items[1]}. How many ${items[0]} are in ${how} ${items[1]}${items[1] === "box" ? "es" : "s"}?`;
+  return qentry(prompt, each * how, "Equal groups: how many groups, and how many in each group?",
+    `${how} groups of ${each}: ${how} × ${each} = ${each * how}.`);
+}
+function genFacts() {
+  const a = qpick([2, 3, 4, 5, 10]), b = qr(2, 10);
+  const [x, y] = Math.random() < 0.5 ? [a, b] : [b, a];
+  return qentry(`${x} × ${y} = ?`, x * y, `${x} groups of ${y}. Skip-count by ${y}, ${x} times.`,
+    `${x} × ${y} = ${x * y}. Skip-count by ${y}: ${Array.from({ length: x }, (_, i) => y * (i + 1)).join(", ")}.`);
+}
+
+/* ---------- place value and expanded notation ---------- */
+const PLACES = [[10000, "ten thousands"], [1000, "thousands"], [100, "hundreds"], [10, "tens"], [1, "ones"]];
+function expParts(n) {
+  const parts = [];
+  PLACES.forEach(([v]) => { const d = Math.floor(n / v) % 10; if (d && n >= v) parts.push([d, v]); });
+  return parts;
+}
+const expStr = (parts) => parts.map(([d, v]) => `(${d} × ${qn(v)})`).join(" + ");
+function genExpNotation() {
+  /* numbers with a 0 inside, like 5,704 or 10,372 — the zero is the tricky part */
+  let n;
+  do {
+    n = Math.random() < 0.7 ? qr(1001, 9899) : qr(10010, 98909);
+  } while (!String(n).slice(1).includes("0") || n % 10 === 0 && Math.random() < 0.5);
+  const parts = expParts(n);
+  if (Math.random() < 0.5) {
+    const right = expStr(parts);
+    const bump = (idx, f) => expStr(parts.map(([d, v], i) => (i === idx ? [d, Math.max(1, v * f)] : [d, v])));
+    const w1 = bump(0, 0.1);                                   // e.g. 5,704 as (5 × 100) + (7 × 100) + (4 × 1)
+    const w2 = bump(parts.length - 1, 10);                      // the ones pushed into the tens
+    const w3 = parts.length > 2 ? bump(1, parts[1][1] >= 10 ? 0.1 : 10) : bump(0, 10);
+    const form = parts.map(([d, v]) => qn(d * v)).join(" + ");  // expanded FORM, not notation
+    return qmc(`Which expression represents the number ${qn(n)}?`, right, [w1, ...qshuffle([w2, w3, form])],
+      "Make a place-value chart. Write each digit under its place. Skip the place with the 0.",
+      `In ${qn(n)}: ${parts.map(([d, v]) => `the ${d} is worth ${qn(d * v)}`).join(", ")}. Each part is digit × place value, so ${right}. The 0 holds a place open, so that place gets no part at all. (The choice with only plus signs is expanded FORM, not notation.)`);
+  }
+  return qentry(`What number is ${expStr(parts)}?`, n, "Put each digit in its place. Write 0 in any place that is missing.",
+    `${parts.map(([d, v]) => qn(d * v)).join(" + ")} = ${qn(n)}. Any place with no part gets a 0, so the number is ${qn(n)}.`);
+}
+function genPlaceValue() {
+  let n, i, d;
+  do {
+    n = Math.random() < 0.6 ? qr(120, 989) : qr(1200, 98999);
+    const digits = String(n);
+    i = qr(0, digits.length - 2);
+    d = Number(digits[i]);
+  } while (!d || String(n).split("").filter((c) => c === String(d)).length > 1);
+  const len = String(n).length, val = d * 10 ** (len - 1 - i);
+  const place = PLACES[5 - (len - i)][1];
+  return qentry(`In the number ${qn(n)}, what is the VALUE of the digit ${d}?`, val,
+    "Count the places from the right: ones, tens, hundreds, thousands, ten thousands.",
+    `The ${d} is in the ${place} place, so it's worth ${qn(val)} — not just ${d}. The value is the digit times its place.`);
+}
+
+/* ---------- reading: syllables, contractions, point of view ---------- */
+const VCE = [["pancake", "cake", "a"], ["alone", "lone", "o"], ["homework", "home", "o"], ["compete", "pete", "e"],
+  ["escape", "cape", "a"], ["invite", "vite", "i"], ["mistake", "take", "a"], ["include", "clude", "u"], ["inside", "side", "i"],
+  ["reduce", "duce", "u"], ["explode", "plode", "o"], ["sunrise", "rise", "i"], ["cupcake", "cake", "a"], ["costume", "tume", "u"],
+  ["trombone", "bone", "o"], ["stampede", "pede", "e"], ["reptile", "tile", "i"], ["confuse", "fuse", "u"], ["athlete", "lete", "e"],
+  ["bedtime", "time", "i"], ["lemonade", "nade", "a"], ["backbone", "bone", "o"], ["complete", "plete", "e"], ["sunshine", "shine", "i"]];
+const CLOSED_WORDS = ["napkin", "basket", "rabbit", "picnic", "sunset", "contest", "muffin", "kitten", "problem", "insect", "tablet", "helmet"];
+function genVCe() {
+  const [w, syl, v] = qpick(VCE);
+  if (Math.random() < 0.6) {
+    return qmc(`In the word "${w}", find the syllable with a vowel, a consonant, and a silent e (VCe): "${syl}". Which long vowel sound does it make?`,
+      `long ${v}`, qshuffle(["a", "e", "i", "o", "u"].filter((x) => x !== v)).map((x) => `long ${x}`),
+      "In a VCe syllable the e is silent. It makes the vowel before it say its own name.",
+      `In "${syl}" the silent e makes the ${v} say its name, so it's a long ${v} sound: ${w}.`);
+  }
+  return qmc("Which word has a VCe syllable with a long vowel sound?", w, qshuffle(CLOSED_WORDS).slice(0, 3),
+    "Look for a vowel, then one consonant, then an e at the end of a syllable.",
+    `"${w}" has the syllable "${syl}" — vowel, consonant, silent e — so the vowel is long. The other words have closed syllables with short vowels.`);
+}
+const SYLL = [["robot", "ro", true], ["tulip", "tu", true], ["donut", "do", true], ["music", "mu", true], ["pilot", "pi", true],
+  ["tiger", "ti", true], ["zero", "ze", true], ["baby", "ba", true], ["napkin", "nap", false], ["rabbit", "rab", false],
+  ["basket", "bas", false], ["pencil", "pen", false], ["muffin", "muf", false], ["picnic", "pic", false], ["sunset", "sun", false]];
+function genSyllables() {
+  const [w, first, open] = qpick(SYLL);
+  return qmc(`Look at the first syllable of "${w}": "${first}". Is it an open syllable or a closed syllable?`,
+    open ? "Open — it ends with a vowel, so the vowel is long" : "Closed — it ends with a consonant, so the vowel is short",
+    [open ? "Closed — it ends with a consonant, so the vowel is short" : "Open — it ends with a vowel, so the vowel is long",
+      "It isn't a syllable", "Both open and closed"],
+    "Does the syllable end with a vowel or a consonant?",
+    open
+      ? `"${first}" ends with the vowel, so it's OPEN and the vowel says its name. That's why ${w} starts with a long sound.`
+      : `"${first}" ends with a consonant that closes in the vowel, so it's CLOSED and the vowel is short.`);
+}
+const CONTRACTIONS = [["I would", "I'd"], ["you will", "you'll"], ["have not", "haven't"], ["we have", "we've"], ["he would", "he'd"],
+  ["they would", "they'd"], ["she will", "she'll"], ["you have", "you've"], ["we will", "we'll"], ["I have", "I've"],
+  ["do not", "don't"], ["is not", "isn't"], ["they are", "they're"], ["it is", "it's"], ["we are", "we're"], ["she would", "she'd"]];
+function genContractions() {
+  const [full, short] = qpick(CONTRACTIONS);
+  const first = full.split(" ")[0];
+  const same = CONTRACTIONS.filter((c) => c[1] !== short && c[0].split(" ")[0] === first);
+  const rest = CONTRACTIONS.filter((c) => c[1] !== short && c[0].split(" ")[0] !== first);
+  const others = [...qshuffle(same), ...qshuffle(rest)];
+  if (Math.random() < 0.5) {
+    return qmc(`Which contraction means "${full}"?`, short, others.map((c) => c[1]),
+      "A contraction squeezes two words together. The apostrophe takes the place of the missing letters.",
+      `"${full}" squeezes into "${short}". The apostrophe stands in for the letters that were taken out.`);
+  }
+  return qmc(`What two words make the contraction "${short}"?`, full, others.map((c) => c[0]),
+    "Put the missing letters back where the apostrophe is.",
+    `"${short}" is short for "${full}". The apostrophe shows where letters were left out.`);
+}
+const POV = [
+  ["I woke up early and packed my backpack for the trip.", "first"],
+  ["Dear Primo, I miss you! My school has a big garden.", "first"],
+  ["We raced to the park, and my sister won.", "first"],
+  ["She opened the box and found a tiny kitten inside.", "third"],
+  ["Carlitos and Charlie wrote letters to each other every week.", "third"],
+  ["They built a track in the backyard and raced their cars.", "third"],
+  ["He kicked the ball so hard it flew over the fence.", "third"],
+  ["My grandma and I baked bread on Saturday.", "first"],
+];
+function genPOV() {
+  const [line, pov] = qpick(POV);
+  return qmc(`"${line}"\nWhat point of view is this written in?`,
+    pov === "first" ? "First person — the narrator is in the story" : "Third person — the narrator is outside the story",
+    [pov === "first" ? "Third person — the narrator is outside the story" : "First person — the narrator is in the story",
+      "Second person — the narrator is the reader", "You can't tell"],
+    "Look at the pronouns. I, me, my, we mean first person. He, she, they mean third person.",
+    pov === "first"
+      ? "It uses words like I, my, or we, so someone inside the story is telling it. That's first person. In the Dear Primo letters, each cousin is the narrator of his own letter."
+      : "It uses he, she, they, or names, so someone outside the story is telling it. That's third person.");
+}
+
+/* ---------- science: states of matter ---------- */
+const MATTER_QS = [
+  qmcS("Which of these is a LIQUID?", "oil", ["sand", "ice", "air"],
+    "A liquid can be poured and takes the shape of its container.",
+    "Oil pours and takes the shape of any cup you put it in, but it keeps the same amount. That makes it a liquid. Sand pours too, but every tiny grain keeps its own shape, so sand is a solid."),
+  qmcS("Kendra's class put sand in the LIQUIDS column. Why is that wrong?", "Each grain of sand is a solid that keeps its own shape", ["Sand is a gas", "Sand is too heavy to be a liquid", "Sand is wet"],
+    "Look at one tiny grain. Does it change shape in a cup?",
+    "Sand can be poured, but each grain holds its own shape. Holding a shape is what solids do, so sand is a solid made of tiny pieces."),
+  qmcS("Matter takes the shape of its container, fills ALL parts of the container, and has no definite shape. What could it be?", "air", ["sand", "cereal", "beads"],
+    "Which one spreads out to fill the whole space?",
+    "Only a gas fills every part of a container. Air is a gas. Sand, cereal, and beads are solids that just sit at the bottom."),
+  qmcS("A toy dump truck keeps the same shape wherever you put it. What state of matter is it?", "solid", ["liquid", "gas", "none of these"],
+    "Does it change shape to fit a box?",
+    "The truck holds its own shape, so it is a solid. That's the evidence: solids keep their shape."),
+  qmcS("Which property makes juice a LIQUID?", "It takes the shape of its cup but keeps the same amount", ["It keeps its own shape", "It fills the whole room", "It can't be poured"],
+    "Pour juice into a tall glass, then a bowl. What changes and what stays the same?",
+    "Juice changes shape to match its container, but the amount stays the same. That's what makes it a liquid. A gas would spread out to fill the whole space."),
+  qmcS("How are ice and liquid water alike?", "They are both made of water", ["They both keep their shape", "They are both gases", "They are both hot"],
+    "Think about what they are made of, not how they look.",
+    "Ice and liquid water are the same matter in different states. The ice is a solid that keeps its shape; the liquid water takes the shape of the glass."),
+  qmcS("An ice cube sits in the sun and turns into water. What is this change called?", "melting", ["freezing", "evaporation", "condensation"],
+    "Solid to liquid, and heat was added.",
+    "Heat turned a solid into a liquid. That's melting."),
+  qmcS("Water is put in the freezer and becomes ice. What is this change called?", "freezing", ["melting", "evaporation", "condensation"],
+    "Liquid to solid, and it got cold.",
+    "Cooling turned a liquid into a solid. That's freezing."),
+  qmcS("A puddle disappears on a hot, sunny day. What happened to the water?", "It evaporated into a gas", ["It froze", "It melted", "It condensed"],
+    "Heat can turn a liquid into a gas you can't see.",
+    "The sun's heat turned the liquid water into water vapor, a gas. That's evaporation."),
+  qmcS("Tiny water drops form on the outside of a cold glass of lemonade. What is this change called?", "condensation", ["evaporation", "melting", "freezing"],
+    "Water vapor in the air touched something cold.",
+    "Water vapor (a gas) in the air cooled down on the cold glass and turned back into liquid drops. That's condensation — gas to liquid, caused by cold."),
+  qmcS("Which change needs HEAT to happen?", "melting", ["freezing", "condensation", "none of them"],
+    "Think of ice in the sun.",
+    "Melting and evaporation need heat. Freezing and condensation happen when things cool down."),
+];
+function qmcS(prompt, right, wrongs, hint, exp) { return { prompt, right, wrongs, hint, exp }; }
+
+/* topic list: weight = how often it comes up. Weak spots from the worksheets get more weight. */
+const DRIVE_TOPICS = [
+  { id: "round10", title: "Rounding to the nearest 10", w: 3, gen: genRound10 },
+  { id: "round100", title: "Rounding to the nearest 100", w: 3, gen: genRound100 },
+  { id: "estimate", title: "Estimating by rounding", w: 2, gen: genEstimate },
+  { id: "addsub", title: "Adding and subtracting", w: 2, gen: genAddSub },
+  { id: "twostep", title: "Two-step word problems", w: 2, gen: genTwoStep },
+  { id: "barmodel", title: "Bar model problems", w: 1.5, gen: genBarModel },
+  { id: "repadd", title: "Equal groups and repeated addition", w: 3, gen: genRepAdd },
+  { id: "facts", title: "Multiplication facts", w: 1.5, gen: genFacts },
+  { id: "expnot", title: "Expanded notation", w: 2.5, gen: genExpNotation },
+  { id: "pvalue", title: "Place value", w: 2, gen: genPlaceValue },
+  { id: "vce", title: "VCe syllables", w: 1.5, gen: genVCe },
+  { id: "syll", title: "Open and closed syllables", w: 1, gen: genSyllables },
+  { id: "contract", title: "Contractions", w: 1.5, gen: genContractions },
+  { id: "pov", title: "Point of view", w: 1.5, gen: genPOV },
+  { id: "matter", title: "States of matter", w: 2, list: MATTER_QS.map((m) => () => qmc(m.prompt, m.right, m.wrongs, m.hint, m.exp)) },
+];
+
+/* one question for the drive. mem = { seen: [keys], recent: [topic ids], miss: {topic: n} } */
+function driveQuestion(mem, onlyTopic, avoidPrompt) {
+  const seen = new Set(mem.seen || []);
+  const recent = mem.recent || [];
+  const miss = mem.miss || {};
+  /* the lessons' own questions are one more topic per stop (no reading passages mid-drive) */
+  const lessons = CONCEPTS.filter((c) => !c.passage).map((c) => ({
+    id: `c:${c.id}`, title: c.title, w: 0.5,
+    items: c.qs.map((q, i) => ({ key: `c:${c.id}:${i}`, q })).filter((x) => !x.q.passage),
+  }));
+  const topics = [...DRIVE_TOPICS, ...lessons];
+  let t = onlyTopic ? topics.find((x) => x.id === onlyTopic) : null;
+  if (!t) {
+    const pool = topics.filter((x) => !recent.slice(-4).includes(x.id));
+    const weight = (x) => x.w * (1 + Math.min(3, miss[x.id] || 0) * 0.5);   // topics missed lately come up more
+    let sum = pool.reduce((a, x) => a + weight(x), 0), r = Math.random() * sum;
+    t = pool[pool.length - 1];
+    for (const x of pool) { r -= weight(x); if (r <= 0) { t = x; break; } }
+  }
+  let q, key;
+  if (t.gen) {
+    for (let k = 0; k < 12; k++) {
+      q = t.gen();
+      key = `g:${t.id}:${qhash(q.prompt)}`;
+      if (!seen.has(key) && q.prompt !== avoidPrompt) break;
+    }
+  } else {
+    const items = t.items || t.list.map((f, i) => ({ key: `${t.id}:${i}`, make: f }));
+    let fresh = items.filter((x) => !seen.has(x.key) && (!x.q || x.q.prompt !== avoidPrompt));
+    if (!fresh.length) fresh = items.filter((x) => !x.q || x.q.prompt !== avoidPrompt);
+    const it = qpick(fresh.length ? fresh : items);
+    key = it.key;
+    q = it.make ? it.make() : shuffleChoices(it.q);
+  }
+  return { q, key, topic: t.id, title: t.title };
+}
+/* shuffle the choices of a lesson question, unless its explanation names a choice by letter */
+function shuffleChoices(q) {
+  if (q.type !== "mc" || /[Cc]hoice [A-E]\b/.test(q.exp || "")) return q;
+  const order = qshuffle(q.options.map((_, i) => i));
+  return { ...q, options: order.map((i) => q.options[i]), a: order.indexOf(q.a) };
+}
+/* how long to read before the answer buttons wake up (longer after a miss) */
+const readDelayMs = (q, misses) => {
+  const text = `${q.prompt} ${(q.options || []).join(" ")}`;
+  return Math.min(9000, Math.min(7000, Math.max(2500, 1500 + text.length * 28)) + misses * 1000);
+};
+
 const GFX_KEY = "brickdash-gfx-v1";   // remembers High / Fast graphics on this device (key name must not change)
 
 /* ---------------- Figure-8 race course ----------------
@@ -3221,11 +3618,24 @@ const GFX_KEY = "brickdash-gfx-v1";   // remembers High / Fast graphics on this 
    points are evenly spaced. Cars track their progress in "samples" along it. */
 const RACE_LAPS = 2;
 const TRACK_W = 13;                     // road width
+/* Each level has its own course and its own computer-car tuning.
+   band: when a computer car is this far AHEAD of you (fraction of a lap) it eases off to this speed.
+   behind: speed factor for a computer car that is just behind you, so a pass you earn sticks.
+   boostMax: longest turbo (frames) for a first-try right answer at a question gate.
+   Tuned with a Node simulation of the same course and AI code. Best times are kept per course (bestKey). */
 const RACE_LEVELS = [
-  { id: "rookie", name: "Rookie", note: "Relaxed racers", mult: 0.84 },
-  { id: "pro", name: "Pro", note: "A real race", mult: 0.99 },
-  { id: "champ", name: "Champion", note: "Fast and tough", mult: 1.11 },
+  { id: "rookie", name: "Rookie", note: "Relaxed racers", track: "fig8", bestKey: "rookie",
+    mult: 0.7, band: [[0.04, 0.76], [0.1, 0.55]], catchup: 1.03, behind: 0.9, boostMax: 540 },
+  { id: "pro", name: "Pro", note: "A real race", track: "canyon", bestKey: "pro_canyon",
+    mult: 0.88, band: [[0.1, 0.9], [0.22, 0.8]], catchup: 1.06, behind: 0.96, boostMax: 420 },
+  { id: "champ", name: "Champion", note: "Fast and tough", track: "twister", bestKey: "champ_twister",
+    mult: 1.04, band: [[0.18, 0.94]], catchup: 1.08, behind: 1, boostMax: 360 },
 ];
+const TRACKS = {
+  fig8: { name: "Figure-8", blurb: "Two big loops. Watch the crossing in the middle!" },
+  canyon: { name: "Canyon Loop", blurb: "A long back straight and a twisty canyon section." },
+  twister: { name: "Twister Ridge", blurb: "Tight bends and a chicane. Brake before the turns!" },
+};
 const RIVALS = [
   { name: "ZOOM", color: "#D8362A", css: "#D8362A", base: 0.405, lane: -3.2, slot: 0 },
   { name: "DASH", color: "#12A05A", css: "#12A05A", base: 0.388, lane: 3.2, slot: 1 },
@@ -3237,27 +3647,11 @@ const fmtRace = (sec) => {
   return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}.${Math.floor((s % 1) * 10)}`;
 };
 
-let FIG8 = null;
-function figure8() {
-  if (FIG8) return FIG8;
-  const A = 86, B = 48, T0 = -0.32, D = 6000;
-  const rx = [], rz = [], cum = [0];
-  for (let i = 0; i <= D; i++) {
-    const t = T0 + (i / D) * Math.PI * 2;
-    rx.push(A * Math.sin(t)); rz.push(B * Math.sin(2 * t));
-    if (i) cum.push(cum[i - 1] + Math.hypot(rx[i] - rx[i - 1], rz[i] - rz[i - 1]));
-  }
-  const len = cum[D];
-  const N = Math.round(len / 0.6);
-  const x = new Float32Array(N), z = new Float32Array(N);
-  let j = 0;
-  for (let i = 0; i < N; i++) {
-    const target = (i / N) * len;
-    while (j < D - 1 && cum[j + 1] < target) j++;
-    const f = (target - cum[j]) / ((cum[j + 1] - cum[j]) || 1);
-    x[i] = rx[j] + (rx[j + 1] - rx[j]) * f;
-    z[i] = rz[j] + (rz[j + 1] - rz[j]) * f;
-  }
+/* Race courses. Every course is a closed centre line resampled into evenly spaced
+   samples (0.6 units apart) with tangents, curvature, a mini-map path and two
+   "question gates" placed on the straightest parts of the lap. */
+function finishTrack(x, z, len, extra = {}) {
+  const N = x.length;
   const tx = new Float32Array(N), tz = new Float32Array(N), curv = new Float32Array(N);
   for (let i = 0; i < N; i++) {
     const a = (i + 1) % N, b = (i - 1 + N) % N;
@@ -3272,12 +3666,94 @@ function figure8() {
     while (d < -Math.PI) d += Math.PI * 2;
     curv[i] = Math.abs(d) / (8 * step);
   }
-  /* mini-map path, scaled into a 200 x 120 box */
+  /* question gates: the straightest spot in each half of the lap (looking 40 units ahead),
+     never near the figure-8 crossing and never near the start line */
+  const ahead = new Float32Array(N);
+  for (let i = 0; i < N; i++) {
+    let m = 0;
+    for (let k = -10; k < 70; k++) m = Math.max(m, curv[(i + k + N) % N]);
+    ahead[i] = m;
+  }
+  const bestIn = (a, b) => {
+    let bi = -1;
+    for (let i = Math.floor(N * a); i < N * b; i++) {
+      if (Math.hypot(x[i], z[i]) < 30) continue;
+      if (bi < 0 || ahead[i] < ahead[bi]) bi = i;
+    }
+    return bi < 0 ? Math.floor(N * (a + b) / 2) : bi;
+  };
+  const gates = [bestIn(0.12, 0.45), bestIn(0.55, 0.85)];
   let path = "";
   for (let i = 0; i < N; i += 6) path += `${i ? "L" : "M"}${(100 + x[i] * 1.05).toFixed(1)} ${(60 + z[i] * 1.05).toFixed(1)} `;
-  FIG8 = { N, len, step, x, z, tx, tz, curv, path: path + "Z" };
-  return FIG8;
+  return { N, len, step, x, z, tx, tz, curv, ahead, gates, path: path + "Z", ...extra };
 }
+function resample(rx, rz, closed) {
+  const M = rx.length, cum = [0];
+  const last = closed ? M : M - 1;
+  for (let i = 1; i <= last; i++) cum.push(cum[i - 1] + Math.hypot(rx[i % M] - rx[i - 1], rz[i % M] - rz[i - 1]));
+  const len = cum[last];
+  const N = Math.round(len / 0.6);
+  const x = new Float32Array(N), z = new Float32Array(N);
+  let j = 0;
+  for (let i = 0; i < N; i++) {
+    const target = (i / N) * len;
+    while (j < last - 1 && cum[j + 1] < target) j++;
+    const f = (target - cum[j]) / ((cum[j + 1] - cum[j]) || 1);
+    const a = j % M, b = (j + 1) % M;
+    x[i] = rx[a] + (rx[b] - rx[a]) * f;
+    z[i] = rz[a] + (rz[b] - rz[a]) * f;
+  }
+  return { x, z, len };
+}
+/* smooth closed course through control points (Catmull-Rom, then gently smoothed),
+   rotated so sample 0 (the start line) sits on a straight */
+function splineTrack(P, start) {
+  const n = P.length, per = 24, dx = [], dz = [];
+  for (let i = 0; i < n; i++) {
+    const p0 = P[(i - 1 + n) % n], p1 = P[i], p2 = P[(i + 1) % n], p3 = P[(i + 2) % n];
+    for (let k = 0; k < per; k++) {
+      const u = k / per;
+      const c = (a, b, c2, d) => 0.5 * (2 * b + (-a + c2) * u + (2 * a - 5 * b + 4 * c2 - d) * u * u + (-a + 3 * b - 3 * c2 + d) * u * u * u);
+      dx.push(c(p0[0], p1[0], p2[0], p3[0])); dz.push(c(p0[1], p1[1], p2[1], p3[1]));
+    }
+  }
+  let X = dx, Z = dz;
+  const M = X.length, W = 5;
+  for (let pass = 0; pass < 4; pass++) {
+    const nx = new Array(M), nz = new Array(M);
+    for (let i = 0; i < M; i++) {
+      let sx = 0, sz = 0;
+      for (let k = -W; k <= W; k++) { const j = (i + k + M) % M; sx += X[j]; sz += Z[j]; }
+      nx[i] = sx / (2 * W + 1); nz[i] = sz / (2 * W + 1);
+    }
+    X = nx; Z = nz;
+  }
+  const r = resample(X, Z, true);
+  let b = 0, bd = Infinity;
+  for (let i = 0; i < r.x.length; i++) { const d = Math.hypot(r.x[i] - start[0], r.z[i] - start[1]); if (d < bd) { bd = d; b = i; } }
+  const N = r.x.length, x = new Float32Array(N), z = new Float32Array(N);
+  for (let i = 0; i < N; i++) { x[i] = r.x[(i + b) % N]; z[i] = r.z[(i + b) % N]; }
+  return finishTrack(x, z, r.len);
+}
+const TRACK_CACHE = {};
+function raceTrack(id) {
+  if (TRACK_CACHE[id]) return TRACK_CACHE[id];
+  let T;
+  if (id === "canyon") {
+    T = splineTrack([[-78, -42], [-20, -46], [40, -46], [82, -36], [88, 2], [74, 38], [40, 44], [18, 24], [-4, 22], [-26, 40], [-66, 42], [-88, 10]], [-48, -44]);
+  } else if (id === "twister") {
+    T = splineTrack([[-84, -42], [-36, -46], [-14, -24], [8, -24], [30, -46], [80, -44], [90, -18], [79, 4], [88, 26], [74, 46], [30, 46], [8, 26], [-18, 36], [-48, 46], [-84, 38], [-90, 0]], [-62, -44]);
+  } else {
+    /* the figure eight (x = A·sin t, z = B·sin 2t); the road crosses itself at the middle */
+    const A = 86, B = 48, T0 = -0.32, D = 6000, rx = [], rz = [];
+    for (let i = 0; i <= D; i++) { const t = T0 + (i / D) * Math.PI * 2; rx.push(A * Math.sin(t)); rz.push(B * Math.sin(2 * t)); }
+    const r = resample(rx, rz, false);
+    T = finishTrack(r.x, r.z, r.len, { cross: true });
+  }
+  TRACK_CACHE[id] = T;
+  return T;
+}
+const figure8 = () => raceTrack("fig8");
 const mapX = (x) => 100 + x * 1.05, mapZ = (z) => 60 + z * 1.05;
 
 /* nearest centre-line sample; where the road crosses itself, prefer the branch the car was already on */
@@ -3306,7 +3782,11 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
   const [secsLeft, setSecsLeft] = useState(timeLimitSec || null);
   const [coins, setCoins] = useState(0);
   const [stars, setStars] = useState(0);
-  const [challenge, setChallenge] = useState(null);   // { q, title, key }
+  const [challenge, setChallenge] = useState(null);   // { q, title, key, topic, tries, source, target }
+  const [readyAt, setReadyAt] = useState(0);           // answer buttons wake up at this time (read first!)
+  const [, setTick] = useState(0);
+  const [fast, setFast] = useState(false);             // last wrong answer was a very quick tap
+  const [firstTries, setFirstTries] = useState(0);     // questions right on the first try this drive
   const [ans, setAns] = useState(undefined);
   const [locked, setLocked] = useState(false);
   const [race, setRace] = useState(null);             // { phase, count, lap, place, wrong, boost }
@@ -3339,7 +3819,19 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
     return () => clearTimeout(id);
   }, [gfxNote]);
   const coinsRef = useRef(0);
-  const usedQs = useRef(new Set());
+  const memRef = useRef(null);                         // question rotation memory, saved in progress.driveQ
+  if (!memRef.current) {
+    const m = progress.driveQ || {};
+    memRef.current = { seen: m.seen || [], recent: m.recent || [], miss: m.miss || {} };
+  }
+  const boostTargetRef = useRef(null);                 // name of the car the turbo is chasing
+  const onGateRef = useRef(null);
+  const streakRef = useRef(0);
+  /* hide the floating Sprint button while driving so it doesn't cover the pedals */
+  useEffect(() => {
+    document.body.classList.add("bd-driving");
+    return () => document.body.classList.remove("bd-driving");
+  }, []);
   const progressRef = useRef(progress);
   progressRef.current = progress;
   const onExitRef = useRef(onExit);
@@ -3375,29 +3867,30 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
     setRunKey((k) => k + 1);
   };
 
-  /* random question from any stop (reading-passage questions skipped — too long mid-drive) */
-  const pickQuestion = () => {
-    const pool = [];
-    CONCEPTS.forEach((c) => c.qs.forEach((q, i) => {
-      if (!q.passage && !c.passage) pool.push({ q, title: c.title, key: `${c.id}:${i}` });
-    }));
-    let fresh = pool.filter((x) => !usedQs.current.has(x.key));
-    if (!fresh.length) { usedQs.current.clear(); fresh = pool; }
-    const pick = fresh[Math.floor(Math.random() * fresh.length)];
-    usedQs.current.add(pick.key);
-    return pick;
+  /* open a question card. Questions rotate through topics and are remembered between drives. */
+  const openQuestion = (extra, onlyTopic, avoidPrompt, tries = 0) => {
+    const pick = driveQuestion(memRef.current, onlyTopic, avoidPrompt);
+    pausedRef.current = true;
+    setAns(undefined);
+    setLocked(false);
+    setFast(false);
+    setReadyAt(Date.now() + readDelayMs(pick.q, tries));
+    setChallenge({ ...pick, tries, ...extra });
   };
+  /* while the read timer runs, tick so the countdown on the button updates */
+  useEffect(() => {
+    if (!challenge || locked || Date.now() >= readyAt) return undefined;
+    const id = setInterval(() => setTick((n) => n + 1), 250);
+    return () => clearInterval(id);
+  }, [challenge, locked, readyAt]);
   /* called from the 3D loop each time a coin is picked up */
   const onCoinRef = useRef(null);
   onCoinRef.current = (n) => {
     setCoins(n);
-    if (n % 5 === 0) {
-      pausedRef.current = true;
-      setAns(undefined);
-      setLocked(false);
-      setChallenge(pickQuestion());
-    }
+    if (mode === "free" && n % 5 === 0) openQuestion({ source: "coin" });   // in the race, questions come from the gates
   };
+  /* called from the 3D loop when the car drives under a question gate (always on a straight) */
+  onGateRef.current = (info) => openQuestion({ source: "gate", target: info });
   /* called from the 3D loop when something on the race HUD changes */
   const onRaceRef = useRef(null);
   const raceDoneRef = useRef(false);
@@ -3405,7 +3898,8 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
     if (r.phase === "done" && !raceDoneRef.current) {
       raceDoneRef.current = true;
       const p = progressRef.current;
-      const prev = (p.raceBest || {})[level];
+      const bk = (RACE_LEVELS.find((l) => l.id === level) || RACE_LEVELS[0]).bestKey;
+      const prev = (p.raceBest || {})[bk];
       const newBest = !prev || r.time < prev.time;
       const best = newBest ? { time: r.time, place: r.place } : prev;
       if (push) {
@@ -3413,7 +3907,7 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
           ...p,
           races: (p.races || 0) + 1,
           raceWins: (p.raceWins || 0) + (r.place === 1 ? 1 : 0),
-          raceBest: { ...(p.raceBest || {}), [level]: newBest ? { time: Math.round(r.time * 10) / 10, place: r.place, ts: Date.now() } : prev },
+          raceBest: { ...(p.raceBest || {}), [bk]: newBest ? { time: Math.round(r.time * 10) / 10, place: r.place, ts: Date.now() } : prev },
           driveBestCoins: Math.max(p.driveBestCoins || 0, coinsRef.current),
         });
       }
@@ -3421,28 +3915,56 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
     }
     setRace(r);
   };
+  const reading = !!challenge && !locked && Date.now() < readyAt;
   const checkChallenge = () => {
-    if (!challenge || locked || !isAnswered(challenge.q, ans)) return;
+    if (!challenge || locked || !isAnswered(challenge.q, ans) || Date.now() < readyAt) return;
     const ok = isCorrect(challenge.q, ans);
+    const firstTry = challenge.tries === 0;
     setLocked(true);
+    setFast(!ok && Date.now() - readyAt < 1500);
     if (ok) {
-      setStars((n) => n + 1);
-      if (TIMED) setSecsLeft((n) => n + 15);
-      if (mode === "race") boostRef.current = 240;     // about 4 seconds of turbo
+      if (firstTry) {
+        setStars((n) => n + 1);
+        setFirstTries((n) => n + 1);
+        streakRef.current += 1;
+        if (TIMED) setSecsLeft((n) => n + 15);
+        if (mode === "race") {
+          const lv = RACE_LEVELS.find((l) => l.id === level) || RACE_LEVELS[0];
+          const ahead = challenge.target && challenge.target.ahead;
+          boostTargetRef.current = ahead || null;
+          boostRef.current = ahead ? lv.boostMax : 240;        // big turbo: long enough to pass the car ahead
+        }
+      } else {
+        if (TIMED) setSecsLeft((n) => n + 5);
+        if (mode === "race") { boostTargetRef.current = null; boostRef.current = 90; }   // small push only
+      }
+    } else {
+      streakRef.current = 0;
     }
+    /* remember what was asked so the next drives rotate to new questions and weak topics */
+    const m = memRef.current;
+    const miss = { ...m.miss };
+    miss[challenge.topic] = ok ? Math.max(0, (miss[challenge.topic] || 0) - 1) : (miss[challenge.topic] || 0) + 1;
+    memRef.current = { seen: [...m.seen.filter((k) => k !== challenge.key), challenge.key].slice(-300), recent: [...m.recent, challenge.topic].slice(-8), miss };
     if (push) {
       const p = progressRef.current;
       const prev = (p.areas && p.areas["Drive challenges"]) || { right: 0, wrong: 0 };
       push({
         ...p,
+        driveQ: memRef.current,
         areas: { ...(p.areas || {}), "Drive challenges": { right: prev.right + (ok ? 1 : 0), wrong: prev.wrong + (ok ? 0 : 1) } },
         correct: (p.correct || 0) + (ok ? 1 : 0),
         attempts: (p.attempts || 0) + 1,
       });
     }
   };
+  /* a wrong answer never goes back to driving: it brings a different question on the same skill */
+  const nextQuestion = () => {
+    if (!challenge) return;
+    openQuestion({ source: challenge.source, target: challenge.target }, challenge.topic, challenge.q.prompt, challenge.tries + 1);
+  };
   const resume = () => {
-    setChallenge(null); setAns(undefined); setLocked(false);
+    setChallenge(null); setAns(undefined); setLocked(false); setFast(false);
     pausedRef.current = false;
   };
   /* keyboard for the question card: digits, A–E / 1–5, Backspace, Enter */
@@ -3451,8 +3973,12 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
     function onKey(e) {
       if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
       const q = challenge.q;
-      if (e.key === "Enter") { e.preventDefault(); if (locked) resume(); else checkChallenge(); return; }
-      if (locked) return;
+      if (e.key === "Enter") {
+        e.preventDefault();
+        if (locked) { if (isCorrect(q, ans)) resume(); else nextQuestion(); } else checkChallenge();
+        return;
+      }
+      if (locked || Date.now() < readyAt) return;
       if (q.type === "entry") {
         if (/^[0-9]$/.test(e.key)) setAns((v) => (String(v ?? "").length < 6 ? String(v ?? "") + e.key : v));
         else if (e.key === "Backspace") { e.preventDefault(); setAns((v) => String(v ?? "").slice(0, -1)); }
@@ -3465,7 +3991,7 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [challenge, ans, locked]);
+  }, [challenge, ans, locked, readyAt]);
 
   useEffect(() => {
     if (!mode) return undefined;
@@ -3570,7 +4096,8 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
     const dummy = new THREE.Object3D();
     const asphaltTex = noiseTexture(256, "#44484f", ["#3a3e45", "#4f535a", "#575b62", "#3f434a"], HIGH ? 5000 : 2000, 14);
     const curbRed = new THREE.Color(0xd8362a), curbWhite = new THREE.Color(0xf6f6f2);
-    const T = RACE ? figure8() : null;
+    const LVL = RACE_LEVELS.find((l) => l.id === level) || RACE_LEVELS[0];
+    const T = RACE ? raceTrack(LVL.track) : null;
 
     /* trees: rounded leafy ones and pines (both courses) */
     const trunkMat = std({ color: 0x7a5132, roughness: 0.9 });
@@ -3696,7 +4223,7 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
       for (let r = 0; r <= N; r++) {
         const i = r % N;
         const nx = -T.tz[i], nz = T.tx[i];
-        const second = i > N * 0.3 && i < N * 0.8 && Math.hypot(T.x[i], T.z[i]) < 20;
+        const second = !!T.cross && i > N * 0.3 && i < N * 0.8 && Math.hypot(T.x[i], T.z[i]) < 20;
         const y = second ? 0.034 : 0.02;
         for (let s = 0; s < 2; s++) {
           const side = s ? 1 : -1, k = (r * 2 + s);
@@ -3738,7 +4265,7 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
       for (let i = 0; i < N; i += 6) if (Math.hypot(T.x[i], T.z[i]) > 9 && i > 6) dashIdx.push(i);
       const dashes = new THREE.InstancedMesh(new THREE.BoxGeometry(0.3, 0.03, 1.8), std({ color: 0xf2efe4, roughness: 0.7 }), dashIdx.length);
       dashIdx.forEach((i, k) => {
-        const second = i > N * 0.3 && i < N * 0.8 && Math.hypot(T.x[i], T.z[i]) < 20;
+        const second = !!T.cross && i > N * 0.3 && i < N * 0.8 && Math.hypot(T.x[i], T.z[i]) < 20;
         dummy.position.set(T.x[i], second ? 0.05 : 0.04, T.z[i]);
         dummy.rotation.set(0, Math.atan2(T.tx[i], T.tz[i]), 0); dummy.scale.set(1, 1, 1); dummy.updateMatrix();
         dashes.setMatrixAt(k, dummy.matrix);
@@ -3844,6 +4371,33 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
       tyres.castShadow = HIGH;
       scene.add(tyres);
 
+      /* question gates: purple arches over the straights. Driving under one opens a question. */
+      const gc = document.createElement("canvas");
+      gc.width = 512; gc.height = 96;
+      const gx = gc.getContext("2d");
+      gx.fillStyle = "#6B2FD0"; gx.fillRect(0, 0, 512, 96);
+      gx.fillStyle = "#FFD21F"; gx.fillRect(0, 0, 512, 8); gx.fillRect(0, 88, 512, 8);
+      gx.font = "bold 50px 'Trebuchet MS', sans-serif"; gx.textAlign = "center"; gx.textBaseline = "middle";
+      gx.fillText("? QUESTION GATE ?", 256, 50);
+      const gateTex = srgb(new THREE.CanvasTexture(gc));
+      const gatePost = std({ color: 0xffd21f, roughness: 0.45, metalness: scene.environment ? 0.3 : 0 });
+      const gateSign = std({ map: gateTex, roughness: 0.6, emissive: 0x2a0d60, emissiveIntensity: 0.4 });
+      T.gates.forEach((gi) => {
+        const g = new THREE.Group();
+        [-1, 1].forEach((side) => {
+          const post = new THREE.Mesh(new THREE.BoxGeometry(0.5, 6.2, 0.5), gatePost);
+          post.position.set(side * (TRACK_W / 2 + 1.1), 3.1, 0);
+          g.add(post);
+        });
+        const bar = new THREE.Mesh(new THREE.BoxGeometry(TRACK_W + 2.8, 1.7, 0.3), [gatePost, gatePost, gatePost, gatePost, gateSign, gateSign]);
+        bar.position.y = 6.4;
+        g.add(bar);
+        g.position.set(T.x[gi], 0, T.z[gi]);
+        g.rotation.y = Math.atan2(T.tx[gi], T.tz[gi]);
+        g.traverse((o) => { o.castShadow = HIGH; });
+        scene.add(g);
+      });
+
       /* bluebonnets and trees, kept off the road */
       const bbN = HIGH ? 900 : 320;
       const bonnets = bluebonnetMesh(bbN);
@@ -3883,7 +4437,7 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
 
     /* computer racers — full cars, different colours */
     const rivals = [];
-    const lvl = RACE_LEVELS.find((l) => l.id === level) || RACE_LEVELS[0];
+    const lvl = LVL;
     const GRID = [[-7, -3.2], [-7, 3.2], [-17, -3.2], [-17, 3.2]];     // [samples behind the line, lane]
     const sampleAt = (s) => {
       const f = ((s % T.N) + T.N) % T.N, i = Math.floor(f), a = (i + 1) % T.N, u = f - i;
@@ -3999,13 +4553,14 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
 
     /* race state (lives in the loop; the HUD is told only when something changes) */
     let phase = RACE ? "countdown" : "free";
+    let gateCount = 0;
     let countdown = 3.6, raceTime = 0, goFlash = 0, lastCount = 4, lastHud = "", doneOrder = 0, playerPlace = 0;
     let lastNow = performance.now();
     const tellHud = (extra = {}) => {
       if (!RACE) return;
       const place = phase === "done" ? playerPlace : 1 + rivals.filter((r) => r.done || r.s > pTotal).length;
       const lap = Math.min(RACE_LAPS, Math.max(1, Math.floor(pTotal / T.N) + 1));
-      const hud = { phase, count: Math.ceil(countdown - 0.6), go: goFlash > 0, lap, place, wrong: wrongFrames > 50, boost: boostRef.current > 0, ...extra };
+      const hud = { phase, count: Math.ceil(countdown - 0.6), go: goFlash > 0, lap, place, wrong: wrongFrames > 50, boost: boostRef.current > 0, boostTo: boostTargetRef.current, gates: gateCount, ...extra };
       const sig = JSON.stringify(hud);
       if (sig !== lastHud) { lastHud = sig; if (onRaceRef.current) onRaceRef.current(hud); }
     };
@@ -4033,9 +4588,24 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
         speed += accel * (boosting ? 0.03 : 0.02);
         speed *= RACE && phase === "done" ? 0.97 : 0.955;
         if (Math.abs(speed) < 0.004) speed = 0;
-        speed = Math.max(-0.25, Math.min(boosting ? 0.62 : 0.45, speed));
+        /* turbo is "smart": it eases off in tight bends so the car can still make the turn */
+        let top = 0.45;
+        if (boosting) {
+          const bendNow = Math.max(T.curv[wrapI(pIdx)], T.curv[wrapI(pIdx + 20)]);
+          top = Math.min(0.62, Math.max(0.42, 0.033 / Math.max(0.001, bendNow)));
+        }
+        speed = Math.max(-0.25, Math.min(top, speed));
         if (Math.abs(speed) > 0.01) heading += turn * 0.035 * (speed > 0 ? 1 : -1);
-        if (boosting) boostRef.current -= 1;
+        if (boosting) {
+          boostRef.current -= 1;
+          const tgt = boostTargetRef.current && rivals.find((r) => r.name === boostTargetRef.current);
+          if (tgt && pTotal > tgt.s + 12) {                  // passed them: finish the turbo gently
+            boostTargetRef.current = null;
+            boostRef.current = Math.min(boostRef.current, 45);
+            tone([660, 990], 0.35, 0.2);
+          }
+          if (boostRef.current <= 0) boostTargetRef.current = null;
+        }
 
         carGroup.position.x += Math.sin(heading) * speed;
         carGroup.position.z += Math.cos(heading) * speed;
@@ -4073,6 +4643,17 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
           if (countdown <= 0.6) { phase = "racing"; goFlash = 1.2; tone([1040], 0.5, 0.22, "square"); }
         } else if (phase === "racing") {
           raceTime += 1 / 60;          // game time, so best times match the car's speed on any screen
+          /* question gate? (two per lap, always on a straight part of the course) */
+          if (gateCount < RACE_LAPS * T.gates.length) {
+            const g = T.gates.length;
+            const at = Math.floor(gateCount / g) * T.N + T.gates[gateCount % g];
+            if (pTotal >= at) {
+              gateCount += 1;
+              const ahead = rivals.filter((r) => !r.done && r.s > pTotal).sort((a, b) => a.s - b.s)[0] || null;
+              const place = 1 + rivals.filter((r) => r.done || r.s > pTotal).length;
+              if (onGateRef.current) onGateRef.current({ place, ahead: ahead ? ahead.name : null, gate: gateCount, of: RACE_LAPS * g });
+            }
+          }
           if (pTotal >= RACE_LAPS * T.N) {
             phase = "done";
             doneOrder += 1;
@@ -4087,10 +4668,12 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
         rivals.forEach((r) => {
           if (phase === "countdown") return;
           const bend = Math.max(T.curv[wrapI(r.s)], T.curv[wrapI(r.s + 10)], T.curv[wrapI(r.s + 22)]);
-          let target = r.base * lvl.mult * (1 - Math.min(0.28, bend * 3.2));
-          const gap = r.s - pTotal;                     // gentle catch-up so races stay close
-          if (gap > T.N * 0.2) target *= 0.9;
-          else if (gap < -T.N * 0.2) target *= 1.07;
+          const baseT = r.base * lvl.mult * (1 - Math.min(0.28, bend * 3.2));
+          let target = baseT;
+          const gap = (r.s - pTotal) / T.N;             // + ahead of the player, - behind (in laps)
+          lvl.band.forEach(([th, m]) => { if (gap > th) target = baseT * m; });   // ease off when far ahead
+          if (gap < -0.2) target *= lvl.catchup;         // gentle catch-up so races stay close
+          else if (gap < 0) target *= lvl.behind;        // a pass the player earned mostly sticks
           if (r.done) target = 0.2;
           target *= 1 + Math.sin(t * 0.7 + r.jitter) * 0.03;
           r.v += (target - r.v) * 0.03;
@@ -4145,6 +4728,7 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
           if (RACE && phase === "done") { spawnCoin(); continue; }
           coinsRef.current += 1;
           ding();
+          if (RACE && boostRef.current < 50) boostRef.current = 50;   // coins give a tiny push in the race
           if (onCoinRef.current) onCoinRef.current(coinsRef.current);
           spawnCoin();
         }
@@ -4212,8 +4796,10 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
   const setTouch = (key, val) => {
     if (mountRef.current && mountRef.current.touchState) mountRef.current.touchState[key] = val;
   };
-  const T8 = figure8();
-  const best = (progress.raceBest || {})[level];
+  const LV = RACE_LEVELS.find((l) => l.id === level) || RACE_LEVELS[0];
+  const T8 = raceTrack(LV.track);
+  const TK = TRACKS[LV.track];
+  const best = (progress.raceBest || {})[LV.bestKey];
 
   return (
     <div className="drive3d">
@@ -4239,7 +4825,7 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
         )}
         {mode === "race" && race && race.go && <div className="rc-count go" aria-live="assertive">GO!</div>}
         {mode === "race" && race && race.wrong && race.phase === "racing" && <div className="rc-wrong">↩️ Wrong way! Turn around</div>}
-        {mode === "race" && race && race.boost && <div className="rc-boost">🔥 Turbo boost!</div>}
+        {mode === "race" && race && race.boost && <div className="rc-boost">{race.boostTo ? `🔥 Turbo! Catch ${race.boostTo}!` : "🔥 Turbo boost!"}</div>}
         {gfxNote && <div className="drive3d-note">{gfxNote}</div>}
         {mode === "free" && (
           <div className="drive3d-hud">
@@ -4256,15 +4842,18 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
               <span>⏱ <b ref={clockRef}>0:00.0</b></span>
               <span>🪙 {coins}{stars > 0 ? ` · ⭐ ${stars}` : ""}</span>
             </div>
-            <span className="rc-tip">Every 5th coin is a question. Get it right for a turbo boost!</span>
+            <span className="rc-tip">Drive under the purple ❓ gates. Right on the first try = turbo past the car ahead!</span>
           </div>
         )}
         {mode === "race" && (
-          <svg className="rc-map" viewBox="0 0 200 120" aria-label="Mini map of the figure-8 track">
+          <svg className="rc-map" viewBox="0 0 200 120" aria-label={`Mini map of the ${TK.name} track`}>
             <path d={T8.path} fill="none" stroke="#3b3f47" strokeWidth="9" strokeLinejoin="round" />
             <path d={T8.path} fill="none" stroke="#fff" strokeWidth="1.2" strokeDasharray="3 4" opacity=".7" />
             <rect x={mapX(T8.x[0]) - 5} y={mapZ(T8.z[0]) - 2} width="10" height="4" fill="#fff" stroke="#111" strokeWidth=".8"
               transform={`rotate(${(-Math.atan2(T8.tx[0], T8.tz[0]) * 180) / Math.PI} ${mapX(T8.x[0])} ${mapZ(T8.z[0])})`} />
+            {T8.gates.map((gi) => (
+              <text key={gi} x={mapX(T8.x[gi])} y={mapZ(T8.z[gi]) + 3} fontSize="9" textAnchor="middle" fill="#B98CFF" fontWeight="800">?</text>
+            ))}
             {RIVALS.map((r, k) => (
               <circle key={r.name} ref={(el) => { dotRefs.current[k + 1] = el; }} r="4" fill={r.css} stroke="#fff" strokeWidth="1.5" />
             ))}
@@ -4284,17 +4873,17 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
                     <path d={T8.path} fill="none" stroke="#fff" strokeWidth="1.4" strokeDasharray="4 5" />
                     <circle cx={mapX(T8.x[0])} cy={mapZ(T8.z[0])} r="6" fill="#FFD21F" stroke={INK} strokeWidth="2" />
                   </svg>
-                  <h3>🏁 Figure-8 Race</h3>
-                  <p>{RACE_LAPS} laps against 3 computer cars. Watch the crossing in the middle!</p>
+                  <h3>🏁 {TK.name} Race</h3>
+                  <p>{RACE_LAPS} laps against 3 computer cars. {TK.blurb} Each level has its own track.</p>
                   <div className="rc-levels" role="group" aria-label="How fast are the computer cars?">
                     {RACE_LEVELS.map((l) => (
                       <button key={l.id} className={`rc-lv ${level === l.id ? "on" : ""}`} aria-pressed={level === l.id} onClick={() => setLevel(l.id)}>
-                        <b>{l.name}</b><span>{l.note}</span>
+                        <b>{l.name}</b><span>{TRACKS[l.track].name} · {l.note}</span>
                       </button>
                     ))}
                   </div>
                   <p className="small" style={{ margin: "8px 0 10px" }}>
-                    {best ? `Your best on ${RACE_LEVELS.find((l) => l.id === level).name}: ${fmtRace(best.time)} (${placeWord(best.place)} place)` : "No race time yet on this level."}
+                    {best ? `Your best on ${TK.name}: ${fmtRace(best.time)} (${placeWord(best.place)} place)` : `No race time yet on ${TK.name}.`}
                   </p>
                   <button className="btn gold" onClick={() => startMode("race")}>🏁 Start the race</button>
                 </div>
@@ -4326,11 +4915,11 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
               <p className="lede" style={{ margin: "4px 0" }}>Time: <b>{fmtRace(result.time)}</b> for {RACE_LAPS} laps</p>
               <p className="small" style={{ margin: 0 }}>
                 {result.newBest ? "⭐ New best time on this level!" : `Best on this level: ${fmtRace(result.best)}`}
-                {stars > 0 ? ` · ${stars} ${stars === 1 ? "question" : "questions"} right` : ""}
+                {firstTries > 0 ? ` · ${firstTries} right on the first try` : ""}
               </p>
               <p className="small" style={{ margin: "6px 0 14px" }}>
                 {result.place === 1 && level !== "champ" ? "Ready for a faster level? Try the next one up." :
-                  result.place > 1 ? "Tip: stay on the grey road — the grass slows you down. Coins give turbo boosts!" : "Champion driver!"}
+                  result.place > 1 ? "Tip: read each gate question carefully. Right on the first try gives a turbo that passes the car ahead!" : "Champion driver!"}
               </p>
               <div className="btnrow" style={{ justifyContent: "center" }}>
                 <button className="btn gold" onClick={() => startMode("race")}>🔁 Race again</button>
@@ -4363,29 +4952,57 @@ function Drive3DScene({ car = {}, progress, push, onExit, timeLimitSec }) {
         const q = challenge.q;
         const noop = () => {};
         const right = locked && isCorrect(q, ans);
+        const first = challenge.tries === 0;
+        const tg = challenge.target;
+        const secs = Math.max(1, Math.ceil((readyAt - Date.now()) / 1000));
+        const say = () => speak(plain(`${q.prompt} ${(q.options || []).map((o, i) => `${"ABCDE"[i]}. ${o}`).join(". ")}`), 0.9);
         return (
           <div className="drive3d-quiz">
             <div className="drive3d-quizin stack">
-              <div className="qnum">🪙 {coins} coins — challenge question · {challenge.title}</div>
-              <p className="prompt" style={{ whiteSpace: "pre-line" }}><RichText text={q.prompt} onWord={noop} /></p>
-              {(q.type === "mc" || q.type === "multi") && <MC q={q} value={ans} onChange={setAns} locked={locked} onWord={noop} />}
-              {q.type === "place" && <PlaceQ q={q} value={ans} onChange={setAns} locked={locked} />}
-              {q.type === "inline" && <InlineQ q={q} value={ans} onChange={setAns} locked={locked} />}
-              {q.type === "entry" && <EntryQ value={ans} onChange={setAns} locked={locked} />}
-              {q.type === "shade" && <ShadeQ q={q} value={ans} onChange={setAns} locked={locked} />}
+              <div className="qnum">
+                {challenge.source === "gate" && tg ? `❓ Question gate ${tg.gate} of ${tg.of}` : `🪙 ${coins} coins — challenge question`} · {challenge.title}
+              </div>
+              {!locked && (
+                <div className={`dq-goal ${first ? "" : "retry"}`}>
+                  {first
+                    ? (mode === "race"
+                      ? (tg && tg.ahead ? `🎯 Right on the first try = turbo past ${tg.ahead} into ${placeWord(tg.place - 1)}!` : "🏆 You're in 1st! Right on the first try = turbo to stretch your lead.")
+                      : TIMED ? "🎯 Right on the first try = +15 seconds of driving." : "🎯 Right on the first try = a star ⭐")
+                    : "🔁 New question, same skill. Get it right to get back on the road."}
+                </div>
+              )}
+              <div className="dq-promptrow">
+                <p className="prompt" style={{ whiteSpace: "pre-line" }}><RichText text={q.prompt} onWord={noop} /></p>
+                <button className="dq-say" onClick={say} aria-label="Read the question to me">🔊</button>
+              </div>
+              {challenge.tries > 0 && !locked && q.hint && <div className="hintbox">💡 <RichText text={q.hint} onWord={noop} /></div>}
+              <div className={`dq-answers ${reading ? "reading" : ""}`} aria-disabled={reading}>
+                {(q.type === "mc" || q.type === "multi") && <MC q={q} value={ans} onChange={setAns} locked={locked} onWord={noop} />}
+                {q.type === "place" && <PlaceQ q={q} value={ans} onChange={setAns} locked={locked} />}
+                {q.type === "inline" && <InlineQ q={q} value={ans} onChange={setAns} locked={locked} />}
+                {q.type === "entry" && <EntryQ value={ans} onChange={setAns} locked={locked} />}
+                {q.type === "shade" && <ShadeQ q={q} value={ans} onChange={setAns} locked={locked} />}
+              </div>
               {q.type === "multi" && !locked && <div className="small">Pick exactly {q.pick || 2}.</div>}
               {locked && (
                 <div className={`fb ${right ? "ok" : "no"}`}>
                   <h3>{right
-                    ? (mode === "race" ? "Right! Turbo boost coming 🔥" : TIMED ? "Right! +15 seconds of driving ⭐" : "Right! You earned a star ⭐")
-                    : "Here's why that one isn't right —"}</h3>
+                    ? (first
+                      ? (mode === "race" ? (boostTargetRef.current ? `Right on the first try! 🔥 Turbo — go catch ${boostTargetRef.current}!` : "Right on the first try! 🔥 Turbo boost!")
+                        : TIMED ? "Right on the first try! +15 seconds ⭐" : "Right on the first try! You earned a star ⭐")
+                      : (mode === "race" ? "Right! Small boost — back on the road." : TIMED ? "Right! +5 seconds." : "Right! Back on the road."))
+                    : "Not quite. Here's why —"}</h3>
                   <p><RichText text={q.exp} onWord={noop} /></p>
+                  {!right && fast && <p className="dq-fast">⚡ That was a very fast answer. Read the whole question before you tap. Guesses don't earn turbo!</p>}
+                  {!right && <p className="small" style={{ margin: 0 }}>Next you'll get a different question on the same skill.</p>}
                 </div>
               )}
               <div className="btnrow" style={{ justifyContent: "center" }}>
                 {!locked
-                  ? <button className="btn" disabled={!isAnswered(q, ans)} onClick={checkChallenge}>Check</button>
-                  : <button className="btn gold" onClick={resume}>🏎️ Keep driving</button>}
+                  ? <button className="btn" disabled={reading || !isAnswered(q, ans)} onClick={checkChallenge}>{reading ? `📖 Read first… ${secs}` : "Check"}</button>
+                  : right
+                    ? <button className="btn gold" onClick={resume}>🏎️ Keep driving</button>
+                    : <button className="btn" onClick={nextQuestion}>🔁 Try a different question</button>}
               </div>
             </div>
           </div>
@@ -5662,21 +6279,29 @@ function Collection({ progress, push, go }) {
         );
       })()}
 
-      <h3 style={{ margin: "16px 0 0", fontSize: 21 }}>🏁 Figure-8 race best times</h3>
+      <h3 style={{ margin: "16px 0 0", fontSize: 21 }}>🏁 Race best times</h3>
       {(() => {
         const rb = progress.raceBest || {};
-        const rows = RACE_LEVELS.filter((l) => rb[l.id]);
-        if (!rows.length) return <p className="small" style={{ margin: 0 }}>No races yet. Tap Drive my car, then pick the Figure-8 Race.</p>;
+        const rows = RACE_LEVELS.filter((l) => rb[l.bestKey]);
+        const drv = (progress.areas || {})["Drive challenges"];
+        const miss = (progress.driveQ && progress.driveQ.miss) || {};
+        const weak = Object.entries(miss).filter(([, n]) => n > 0).sort((x, y) => y[1] - x[1]).slice(0, 4)
+          .map(([id]) => (DRIVE_TOPICS.find((t) => t.id === id) || CONCEPTS.find((c) => `c:${c.id}` === id) || { title: id }).title);
         return (
-          <div className="table">
-            <div className="tr th"><span>Level</span><span>Best time</span><span>Place</span><span></span></div>
-            {rows.map((l) => (
-              <div className="tr" key={l.id}>
-                <span>{l.name}</span><span><b>{fmtRace(rb[l.id].time)}</b></span>
-                <span>{placeWord(rb[l.id].place)}</span><span>{rb[l.id].place === 1 ? "🏆" : ""}</span>
+          <>
+            {rows.length ? (
+              <div className="table">
+                <div className="tr th"><span>Level · track</span><span>Best time</span><span>Place</span><span></span></div>
+                {rows.map((l) => (
+                  <div className="tr" key={l.id}>
+                    <span>{l.name} · {TRACKS[l.track].name}</span><span><b>{fmtRace(rb[l.bestKey].time)}</b></span>
+                    <span>{placeWord(rb[l.bestKey].place)}</span><span>{rb[l.bestKey].place === 1 ? "🏆" : ""}</span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            ) : <p className="small" style={{ margin: 0 }}>No races yet. Tap Drive my car, then pick a race level.</p>}
+            {drv && weak.length ? <p className="small" style={{ margin: "6px 0 0" }}>Drive questions that need more practice: <b>{weak.join(", ")}</b>. These come up more often until they're right.</p> : null}
+          </>
         );
       })()}
 
